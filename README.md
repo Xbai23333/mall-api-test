@@ -1,0 +1,79 @@
+# Mall 商城接口自动化测试项目
+
+## 一、项目简介
+
+本项目基于 GitHub 开源商城系统 Mall，使用 Python、pytest 和 requests 对商城后台管理系统进行接口自动化测试。
+
+通过编写测试用例、执行接口请求、验证响应结果和生成 HTML 测试报告，实现对商城接口的自动化验证。
+
+## 二、技术栈
+
+- 后端项目：Java、Spring Boot、MySQL、Redis
+- 接口测试：Swagger、Python、requests
+- 自动化测试框架：pytest
+- 测试报告：pytest-html
+- 版本管理：Git、GitHub
+
+## 三、已完成的测试内容
+
+### 管理员登录接口
+
+接口地址：`POST /admin/login`
+
+| 用例编号 | 测试场景 | 测试结果 |
+|---|---|---|
+| TC_LOGIN_001 | 正确用户名和密码 | PASS |
+| TC_LOGIN_002 | 错误密码 | PASS |
+| TC_LOGIN_003 | 不存在的用户名 | PASS |
+| TC_LOGIN_004 | 密码为空 | PASS |
+| TC_LOGIN_005 | 用户名为空 | PASS |
+| TC_LOGIN_006 | 用户名和密码同时为空 | PASS |
+
+目前已完成6个登录接口自动化测试用例，最近一次执行全部通过。
+
+## 四、项目目录
+
+```text
+mall-api-test/
+├── tests/
+│   └── test_login.py
+├── reports/
+│   └── login_report.html
+├── requirements.txt
+└── README.md
+```
+
+## 五、运行方法
+
+1. 启动 Mall 商城后台及其依赖服务。
+2. 安装 Python 项目依赖：
+
+   `python -m pip install -r requirements.txt`
+
+3. 执行自动化测试：
+
+   `python -m pytest tests/test_login.py -v`
+
+4. 生成 HTML 测试报告：
+
+   `python -m pytest tests/test_login.py -v --html=reports/login_report.html --self-contained-html`
+
+5. 使用浏览器打开 `reports/login_report.html` 查看测试结果。
+
+## 六、测试发现
+
+在测试管理员登录接口时，发现用户名和密码同时为空的情况下，接口可能返回不同的参数校验提示：
+
+- username不能为空
+- password不能为空
+
+该现象已通过重复测试验证，目前记录为待确认的接口设计问题。
+
+## 七、后续计划
+
+- 完善登录接口测试
+- 开展商品管理接口测试
+- 开展订单管理接口测试
+- 增加数据库数据校验
+- 优化自动化测试框架
+- 开展接口性能测试
