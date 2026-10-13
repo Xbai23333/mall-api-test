@@ -44,6 +44,21 @@ mall-api-test/
 ```
 
 ## 五、运行方法
+### 环境配置
+
+本项目使用 `.env` 文件管理接口地址和测试账号，避免将敏感信息直接写入测试代码。
+
+首次运行时，需要将 `.env.example` 复制为 `.env`，并根据本地测试环境填写对应配置：
+
+```env
+MALL_BASE_URL=http://localhost:8080
+MALL_TEST_USERNAME=admin
+MALL_TEST_PASSWORD=your_password_here
+```
+
+其中，`MALL_TEST_PASSWORD` 需要替换为本地测试账号的实际密码。
+
+`.env` 文件已加入 `.gitignore`，不会被提交到 GitHub。请勿将真实密码或访问令牌写入公开文件。
 
 1. 启动 Mall 商城后台及其依赖服务。
 2. 安装 Python 项目依赖：
