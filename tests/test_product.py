@@ -145,3 +145,107 @@ def test_product_list_without_token():
 
     # 第四步：检查错误提示
     assert "暂未登录" in result["message"]
+
+
+def test_product_list_page_zero(auth_headers):
+    # 边界值测试：页码为0
+    response = requests.get(
+        f"{BASE_URL}/product/list",
+        headers=auth_headers,
+        params={
+            "pageNum": 0,
+            "pageSize": 5
+        },
+        timeout=10
+    )
+
+    # 验证当前接口的实际响应行为
+    assert response.status_code == 200
+
+    result = response.json()
+    assert result["code"] == 200
+
+    data = result["data"]
+
+    assert data["pageNum"] == 0
+    assert data["pageSize"] == 5
+    assert data["total"] == 20
+    assert data["list"] == []
+
+
+def test_product_list_negative_page(auth_headers):
+    # 边界值测试：页码为负数
+    response = requests.get(
+        f"{BASE_URL}/product/list",
+        headers=auth_headers,
+        params={
+            "pageNum": -1,
+            "pageSize": 5
+        },
+        timeout=10
+    )
+
+    # 验证当前接口的实际响应
+    assert response.status_code == 200
+
+    result = response.json()
+    assert result["code"] == 200
+
+    data = result["data"]
+
+    assert data["pageNum"] == -1
+    assert data["pageSize"] == 5
+    assert isinstance(data["list"], list)
+    assert data["list"] == []
+
+
+def test_product_list_page_size_zero(auth_headers):
+    # 边界值测试：每页商品数量为0
+    response = requests.get(
+        f"{BASE_URL}/product/list",
+        headers=auth_headers,
+        params={
+            "pageNum": 1,
+            "pageSize": 0
+        },
+        timeout=10
+    )
+
+    # 验证当前接口的实际响应
+    assert response.status_code == 200
+
+    result = response.json()
+    assert result["code"] == 200
+
+    data = result["data"]
+
+    assert data["pageNum"] == 1
+    assert data["pageSize"] == 0
+    assert data["totalPage"] == 0
+    assert data["list"] == []
+
+
+def test_product_list_negative_page_size(auth_headers):
+    # 边界值测试：每页商品数量为负数
+    response = requests.get(
+        f"{BASE_URL}/product/list",
+        headers=auth_headers,
+        params={
+            "pageNum": 1,
+            "pageSize": -1
+        },
+        timeout=10
+    )
+
+    # 验证当前接口的实际响应
+    assert response.status_code == 200
+
+    result = response.json()
+    assert result["code"] == 200
+
+    data = result["data"]
+
+    assert data["pageNum"] == 1
+    assert data["pageSize"] == -1
+    assert data["totalPage"] == 0
+    assert data["list"] == []

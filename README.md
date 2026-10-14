@@ -41,12 +41,16 @@
 | TC_PRODUCT_002 | 商品列表分页查询 | PASS |
 | TC_PRODUCT_003 | 商品关键词搜索 | PASS |
 | TC_PRODUCT_004 | 未登录访问商品列表 | PASS |
+| TC_PRODUCT_005 | 页码为0 | PASS |
+| TC_PRODUCT_006 | 页码为负数 | PASS |
+| TC_PRODUCT_007 | 每页数量为0 | PASS |
+| TC_PRODUCT_008 | 每页数量为负数 | PASS |
 
-目前已完成4条商品列表接口自动化测试用例。
+目前累计完成14条自动化测试用例，包括6条登录接口测试和8条商品接口测试。
 
-项目累计完成10条自动化测试用例，最近一次执行全部通过，通过率为100%。
+最近一次分别运行两个模块的测试均全部通过。
 
-商品接口测试使用 pytest fixture 复用管理员登录认证逻辑，减少重复代码，提高测试代码的可维护性。
+**说明：** 4条异常分页参数测试用于验证接口当前的实际行为。测试通过不代表非法参数的处理符合业务要求，相关问题已记录，等待进一步确认。
 
 ## 四、项目目录
 
@@ -55,8 +59,9 @@ mall-api-test/
 ├── tests/
 │   ├── test_login.py
 │   └── test_product.py
+├── docs/
+│   └── bug_report.md
 ├── reports/
-│   ├── login_report.html
 │   └── report.html
 ├── .env.example
 ├── .gitignore
@@ -106,6 +111,16 @@ MALL_TEST_PASSWORD=your_password_here
 - password不能为空
 
 该现象已通过重复测试验证，目前记录为待确认的接口设计问题。
+
+### 商品列表分页参数校验问题（待确认）
+
+在商品列表接口测试中发现，当 `pageNum` 或 `pageSize` 为0、负数时，接口仍然返回业务状态码200和“操作成功”，但商品列表为空。
+
+目前已通过 Swagger 和 pytest 自动化测试复现该现象。
+
+由于尚未确认接口对分页参数的正式校验要求，暂时记录为潜在缺陷。
+
+详细记录见：`docs/bug_report.md`。
 
 ## 七、后续计划
 
