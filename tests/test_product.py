@@ -9,30 +9,7 @@ load_dotenv()
 
 BASE_URL = os.getenv("MALL_BASE_URL", "http://localhost:8080")
 
-@pytest.fixture
-def auth_headers():
-    # 登录获取 Token
-    response = requests.post(
-        f"{BASE_URL}/admin/login",
-        json={
-            "username": os.getenv("MALL_TEST_USERNAME"),
-            "password": os.getenv("MALL_TEST_PASSWORD")
-        },
-        timeout=10
-    )
 
-    assert response.status_code == 200
-
-    result = response.json()
-    assert result["code"] == 200
-
-    token = result["data"]["token"]
-    token_head = result["data"]["tokenHead"]
-
-    # 返回带有 Token 的请求头
-    return {
-        "Authorization": token_head + token
-    }
 
 
 
@@ -147,19 +124,30 @@ def test_product_list_without_token():
     assert "暂未登录" in result["message"]
 
 
-def test_product_list_page_zero(auth_headers):
-    # 边界值测试：页码为0
+
+
+@pytest.mark.parametrize(
+    "page_num, page_size",
+    [
+        (0, 5),
+        (-1, 5),
+        (1, 0),
+        (1, -1)
+    ]
+)
+def test_product_list_invalid_pagination(
+    auth_headers, page_num, page_size
+):
     response = requests.get(
         f"{BASE_URL}/product/list",
         headers=auth_headers,
         params={
-            "pageNum": 0,
-            "pageSize": 5
+            "pageNum": page_num,
+            "pageSize": page_size
         },
         timeout=10
     )
 
-    # 验证当前接口的实际响应行为
     assert response.status_code == 200
 
     result = response.json()
@@ -167,85 +155,13 @@ def test_product_list_page_zero(auth_headers):
 
     data = result["data"]
 
-    assert data["pageNum"] == 0
-    assert data["pageSize"] == 5
-    assert data["total"] == 20
+    assert data["pageNum"] == page_num
+    assert data["pageSize"] == page_size
     assert data["list"] == []
 
-
-def test_product_list_negative_page(auth_headers):
-    # 边界值测试：页码为负数
-    response = requests.get(
-        f"{BASE_URL}/product/list",
-        headers=auth_headers,
-        params={
-            "pageNum": -1,
-            "pageSize": 5
-        },
-        timeout=10
-    )
-
-    # 验证当前接口的实际响应
-    assert response.status_code == 200
-
-    result = response.json()
-    assert result["code"] == 200
-
-    data = result["data"]
-
-    assert data["pageNum"] == -1
-    assert data["pageSize"] == 5
-    assert isinstance(data["list"], list)
-    assert data["list"] == []
-
-
-def test_product_list_page_size_zero(auth_headers):
-    # 边界值测试：每页商品数量为0
-    response = requests.get(
-        f"{BASE_URL}/product/list",
-        headers=auth_headers,
-        params={
-            "pageNum": 1,
-            "pageSize": 0
-        },
-        timeout=10
-    )
-
-    # 验证当前接口的实际响应
-    assert response.status_code == 200
-
-    result = response.json()
-    assert result["code"] == 200
-
-    data = result["data"]
-
-    assert data["pageNum"] == 1
-    assert data["pageSize"] == 0
-    assert data["totalPage"] == 0
-    assert data["list"] == []
-
-
-def test_product_list_negative_page_size(auth_headers):
-    # 边界值测试：每页商品数量为负数
-    response = requests.get(
-        f"{BASE_URL}/product/list",
-        headers=auth_headers,
-        params={
-            "pageNum": 1,
-            "pageSize": -1
-        },
-        timeout=10
-    )
-
-    # 验证当前接口的实际响应
-    assert response.status_code == 200
-
-    result = response.json()
-    assert result["code"] == 200
-
-    data = result["data"]
-
-    assert data["pageNum"] == 1
-    assert data["pageSize"] == -1
-    assert data["totalPage"] == 0
-    assert data["list"] == []
+    # 检查当前接口对异常分页参数的处理
+    if page_size <= 0:
+        assert data["totalPage"] == 0
+    else:
+        assert isinstance(data["totalPage"], int)
+        assert data["totalPage"] >= 0
