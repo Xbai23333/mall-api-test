@@ -56,3 +56,93 @@
 目前已通过 Swagger 手动测试及 pytest 自动化测试复现上述现象。
 
 需要进一步核对接口文档或与开发人员确认参数校验规则，再判断是否属于正式缺陷。
+
+
+## 缺陷记录2：商品ID参数类型错误时返回不恰当的认证提示
+
+### 1. 问题描述
+
+在 Java Mall 管理后台的商品编辑信息查询接口中，当商品ID传入非数字字符串时，接口返回HTTP 400，但JSON响应内容却提示用户未登录或Token已过期。
+
+实际测试中使用了有效的管理员Token，因此该提示与真实错误原因不符，容易误导接口调用者。
+
+### 2. 测试环境
+
+- 测试项目：Java Mall
+- 测试接口：GET /product/updateInfo/{id}
+- 测试工具：Python Requests、pytest
+- 后端框架：Spring Boot、Spring Security
+- 测试日期：2026-10-14
+
+### 3. 复现步骤
+
+1. 启动Java Mall管理后台。
+2. 调用POST /admin/login，获取有效的管理员Token。
+3. 在请求头中携带Authorization: Bearer Token。
+4. 请求GET /product/updateInfo/abc。
+5. 查看HTTP状态码及响应内容。
+
+### 4. 实际结果
+
+HTTP状态码：400
+
+响应内容：
+
+{
+  "code": 401,
+  "message": "暂未登录或token已经过期",
+  "data": "Full authentication is required to access this resource"
+}
+
+使用相同Token请求GET /product/updateInfo/1，可以正常返回商品信息。
+
+### 5. 预期结果
+
+接口应返回明确的参数类型错误提示，例如HTTP 400 Bad Request，而不是错误地提示用户未登录。
+
+### 6. 原因分析
+
+通过查看Java后端源码，发现：
+
+1. PmsProductController中的商品查询接口使用@PathVariable Long id接收商品ID。
+2. 字符串abc无法转换为Long类型。
+3. GlobalExceptionHandler没有专门处理MethodArgumentTypeMismatchException。
+4. Spring Security配置中没有明确放行ERROR类型的请求分发。
+5. 认证失败处理器RestAuthenticationEntryPoint会生成401业务响应。
+
+综合判断，参数类型转换失败后的错误处理流程受到Spring Security访问控制影响，是导致错误认证提示的关键因素。
+
+### 7. 验证过程
+
+在本地开发环境中，临时添加以下配置：
+
+registry.dispatcherTypeMatchers(DispatcherType.ERROR).permitAll();
+
+重新编译并启动后端，再次请求：
+
+GET /product/updateInfo/abc
+
+结果变为：
+
+HTTP状态码：400
+
+{
+  "timestamp": "2026-10-14T14:32:20.381+00:00",
+  "status": 400,
+  "error": "Bad Request",
+  "path": "/product/updateInfo/abc"
+}
+
+正常商品查询仍然成功。
+
+这一对照实验支持了Spring Security错误分发权限配置影响异常响应的判断。
+
+实验结束后，已从源代码中删除临时配置。
+
+### 8. 处理建议
+
+建议开发人员检查Spring Security对ERROR类型请求分发的访问控制，并完善参数类型转换异常的统一处理，确保接口返回准确、清晰的错误信息。
+
+### 9. 缺陷状态
+
+已复现并完成初步原因定位，尚未实施正式修复。

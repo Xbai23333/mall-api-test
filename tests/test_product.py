@@ -10,10 +10,6 @@ load_dotenv()
 BASE_URL = os.getenv("MALL_BASE_URL", "http://localhost:8080")
 
 
-
-
-
-
 def test_product_list_success(auth_headers):
     # 第一步：查询商品列表
     response = requests.get(
@@ -165,3 +161,81 @@ def test_product_list_invalid_pagination(
     else:
         assert isinstance(data["totalPage"], int)
         assert data["totalPage"] >= 0
+
+
+def test_product_update_info_success(auth_headers):
+    # 查询商品 ID 为 1 的商品编辑信息
+    product_id = 1
+
+    response = requests.get(
+        f"{BASE_URL}/product/updateInfo/{product_id}",
+        headers=auth_headers,
+        timeout=10
+    )
+
+    # 验证 HTTP 状态码
+    assert response.status_code == 200
+
+    # 验证业务状态码
+    result = response.json()
+    assert result["code"] == 200
+    assert result["message"] == "操作成功"
+
+    # 验证商品信息
+    data = result["data"]
+
+    assert data["id"] == product_id
+    assert isinstance(data["name"], str)
+    assert data["name"] != ""
+    assert isinstance(data["price"], (int, float))
+    assert data["price"] >= 0
+    assert isinstance(data["stock"], int)
+    assert data["stock"] >= 0
+
+    # 验证商品属性列表
+    assert isinstance(data["productAttributeValueList"], list)
+
+
+
+@pytest.mark.parametrize(
+    "product_id",
+    [
+        99999999,
+        0,
+        -1
+    ]
+)
+def test_product_update_info_invalid_id(auth_headers, product_id):
+    # 测试不存在的商品 ID 和异常边界值
+    response = requests.get(
+        f"{BASE_URL}/product/updateInfo/{product_id}",
+        headers=auth_headers,
+        timeout=10
+    )
+
+    # 验证 HTTP 状态码
+    assert response.status_code == 200
+
+    result = response.json()
+
+    # 验证接口当前的实际响应
+    assert result["code"] == 200
+    assert result["message"] == "操作成功"
+    assert result["data"] is None
+
+
+def test_product_update_info_invalid_type(auth_headers):
+    # 商品 ID 使用非数字字符串
+    response = requests.get(
+        f"{BASE_URL}/product/updateInfo/abc",
+        headers=auth_headers,
+        timeout=10
+    )
+
+    # 验证当前接口的实际响应
+    assert response.status_code == 400
+
+    result = response.json()
+
+    assert result["code"] == 401
+    assert "暂未登录" in result["message"]
