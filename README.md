@@ -31,14 +31,35 @@
 
 目前已完成6个登录接口自动化测试用例，最近一次执行全部通过。
 
+### 商品列表接口
+
+接口地址：`GET /product/list`
+
+| 用例编号 | 测试场景 | 测试结果 |
+|---|---|---|
+| TC_PRODUCT_001 | 正常查询商品列表 | PASS |
+| TC_PRODUCT_002 | 商品列表分页查询 | PASS |
+| TC_PRODUCT_003 | 商品关键词搜索 | PASS |
+| TC_PRODUCT_004 | 未登录访问商品列表 | PASS |
+
+目前已完成4条商品列表接口自动化测试用例。
+
+项目累计完成10条自动化测试用例，最近一次执行全部通过，通过率为100%。
+
+商品接口测试使用 pytest fixture 复用管理员登录认证逻辑，减少重复代码，提高测试代码的可维护性。
+
 ## 四、项目目录
 
 ```text
 mall-api-test/
 ├── tests/
-│   └── test_login.py
+│   ├── test_login.py
+│   └── test_product.py
 ├── reports/
-│   └── login_report.html
+│   ├── login_report.html
+│   └── report.html
+├── .env.example
+├── .gitignore
 ├── requirements.txt
 └── README.md
 ```
@@ -67,13 +88,15 @@ MALL_TEST_PASSWORD=your_password_here
 
 3. 执行自动化测试：
 
-   `python -m pytest tests/test_login.py -v`
+   `python -m pytest tests/ -v`
 
 4. 生成 HTML 测试报告：
 
-   `python -m pytest tests/test_login.py -v --html=reports/login_report.html --self-contained-html`
+   `python -m pytest tests/ -v --html=reports/report.html --self-contained-html`
 
-5. 使用浏览器打开 `reports/login_report.html` 查看测试结果。
+5. 使用浏览器打开 `reports/report.html` 查看测试结果。
+
+最近一次测试于2026年10月14日执行，共运行10条测试用例，全部通过，执行耗时约1秒。
 
 ## 六、测试发现
 
@@ -86,9 +109,10 @@ MALL_TEST_PASSWORD=your_password_here
 
 ## 七、后续计划
 
-- 完善登录接口测试
-- 开展商品管理接口测试
+- 完善商品管理接口测试
 - 开展订单管理接口测试
+- 增加异常参数及边界值测试
 - 增加数据库数据校验
-- 优化自动化测试框架
+- 优化 pytest fixture 和公共请求方法
+- 探索 GitHub Actions 持续集成
 - 开展接口性能测试
