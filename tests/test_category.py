@@ -1,24 +1,19 @@
 
-import os
 import pytest
-import requests
-from dotenv import load_dotenv
+from api.category_api import CategoryApi
 
-load_dotenv()
 
-BASE_URL = os.getenv("MALL_BASE_URL", "http://localhost:8080")
+# 创建商品分类接口对象
+category_api = CategoryApi()
 
 
 def test_category_list_success(auth_headers):
     # 第一步：查询一级商品分类
-    response = requests.get(
-        f"{BASE_URL}/productCategory/list/0",
+    response = category_api.get_category_list(
+        parent_id=0,
         headers=auth_headers,
-        params={
-            "pageNum": 1,
-            "pageSize": 5
-        },
-        timeout=10
+        page_num=1,
+        page_size=5
     )
 
     # 第二步：验证 HTTP 状态码
@@ -50,14 +45,11 @@ def test_category_list_success(auth_headers):
 
 def test_category_list_page_two(auth_headers):
     # 第一步：查询一级商品分类的第二页
-    response = requests.get(
-        f"{BASE_URL}/productCategory/list/0",
+    response = category_api.get_category_list(
+        parent_id=0,
         headers=auth_headers,
-        params={
-            "pageNum": 2,
-            "pageSize": 5
-        },
-        timeout=10
+        page_num=2,
+        page_size=5
     )
 
     # 第二步：验证请求成功
@@ -89,14 +81,11 @@ def test_category_list_children_success(auth_headers):
     # 第一步：查询服装分类下面的子分类
     parent_id = 1
 
-    response = requests.get(
-        f"{BASE_URL}/productCategory/list/{parent_id}",
+    response = category_api.get_category_list(
+        parent_id=parent_id,
         headers=auth_headers,
-        params={
-            "pageNum": 1,
-            "pageSize": 5
-        },
-        timeout=10
+        page_num=1,
+        page_size=5
     )
 
     # 第二步：验证请求成功
@@ -127,13 +116,9 @@ def test_category_list_children_success(auth_headers):
 
 def test_category_list_without_token():
     # 第一步：不携带Token查询商品分类
-    response = requests.get(
-        f"{BASE_URL}/productCategory/list/0",
-        params={
-            "pageNum": 1,
-            "pageSize": 5
-        },
-        timeout=10
+    response = category_api.get_category_list(
+        parent_id=0,
+        headers=None
     )
 
     # 第二步：验证接口的权限控制
@@ -148,14 +133,11 @@ def test_category_list_nonexistent_parent(auth_headers):
     # 第一步：查询不存在的父分类
     parent_id = 99999999
 
-    response = requests.get(
-        f"{BASE_URL}/productCategory/list/{parent_id}",
+    response = category_api.get_category_list(
+        parent_id=parent_id,
         headers=auth_headers,
-        params={
-            "pageNum": 1,
-            "pageSize": 5
-        },
-        timeout=10
+        page_num=1,
+        page_size=5
     )
 
     # 第二步：验证请求结果
@@ -179,10 +161,9 @@ def test_category_detail_success(auth_headers):
     # 第一步：查询ID为7的商品分类详情
     category_id = 7
 
-    response = requests.get(
-        f"{BASE_URL}/productCategory/{category_id}",
-        headers=auth_headers,
-        timeout=10
+    response = category_api.get_category_detail(
+        category_id=category_id,
+        headers=auth_headers
     )
 
     # 第二步：验证请求成功
@@ -217,14 +198,11 @@ def test_category_list_invalid_pagination(
     auth_headers, page_num, page_size
 ):
     # 第一步：使用非法分页参数查询商品分类
-    response = requests.get(
-        f"{BASE_URL}/productCategory/list/0",
+    response = category_api.get_category_list(
+        parent_id=0,
         headers=auth_headers,
-        params={
-            "pageNum": page_num,
-            "pageSize": page_size
-        },
-        timeout=10
+        page_num=page_num,
+        page_size=page_size
     )
 
     # 第二步：验证HTTP状态码
@@ -256,14 +234,11 @@ def test_category_list_invalid_pagination(
 
 def test_category_list_negative_parent_id(auth_headers):
     # 使用负数父分类ID查询商品分类
-    response = requests.get(
-        f"{BASE_URL}/productCategory/list/-1",
+    response = category_api.get_category_list(
+        parent_id=-1,
         headers=auth_headers,
-        params={
-            "pageNum": 1,
-            "pageSize": 5
-        },
-        timeout=10
+        page_num=1,
+        page_size=5
     )
 
     assert response.status_code == 200
@@ -282,10 +257,9 @@ def test_category_list_negative_parent_id(auth_headers):
 
 def test_category_detail_nonexistent_id(auth_headers):
     # 查询不存在的商品分类详情
-    response = requests.get(
-        f"{BASE_URL}/productCategory/99999999",
-        headers=auth_headers,
-        timeout=10
+    response = category_api.get_category_detail(
+        category_id=99999999,
+        headers=auth_headers
     )
 
     assert response.status_code == 200
@@ -298,14 +272,11 @@ def test_category_detail_nonexistent_id(auth_headers):
 
 def test_category_list_invalid_parent_id_type(auth_headers):
     # 使用非整数类型的父分类ID
-    response = requests.get(
-        f"{BASE_URL}/productCategory/list/abc",
+    response = category_api.get_category_list(
+        parent_id="abc",
         headers=auth_headers,
-        params={
-            "pageNum": 1,
-            "pageSize": 5
-        },
-        timeout=10
+        page_num=1,
+        page_size=5
     )
 
     # 验证当前接口实际返回的HTTP状态码
