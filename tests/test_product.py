@@ -1,25 +1,18 @@
 
-import os
 import pytest
+from api.product_api import ProductApi
 
-import requests
-from dotenv import load_dotenv
 
-load_dotenv()
-
-BASE_URL = os.getenv("MALL_BASE_URL", "http://localhost:8080")
+# 创建商品接口对象
+product_api = ProductApi()
 
 
 def test_product_list_success(auth_headers):
     # 第一步：查询商品列表
-    response = requests.get(
-        f"{BASE_URL}/product/list",
+    response = product_api.get_product_list(
         headers=auth_headers,
-        params={
-            "pageNum": 1,
-            "pageSize": 5
-        },
-        timeout=10
+        page_num=1,
+        page_size=5
     )
 
     # 第二步：验证返回结果
@@ -37,18 +30,12 @@ def test_product_list_success(auth_headers):
     assert data["total"] >= len(data["list"])
 
 
-
-
 def test_product_list_page_two(auth_headers):
     # 查询第二页，每页3条商品
-    response = requests.get(
-        f"{BASE_URL}/product/list",
+    response = product_api.get_product_list(
         headers=auth_headers,
-        params={
-            "pageNum": 2,
-            "pageSize": 3
-        },
-        timeout=10
+        page_num=2,
+        page_size=3
     )
 
     assert response.status_code == 200
@@ -67,19 +54,13 @@ def test_product_list_page_two(auth_headers):
         assert len(data["list"]) == 3
 
 
-
-
 def test_product_list_search_keyword(auth_headers):
     # 按关键词查询商品
-    response = requests.get(
-        f"{BASE_URL}/product/list",
+    response = product_api.get_product_list(
         headers=auth_headers,
-        params={
-            "keyword": "华为",
-            "pageNum": 1,
-            "pageSize": 10
-        },
-        timeout=10
+        page_num=1,
+        page_size=10,
+        keyword="华为"
     )
 
     assert response.status_code == 200
@@ -96,30 +77,23 @@ def test_product_list_search_keyword(auth_headers):
         assert "华为" in product["name"]
 
 
-
-
 def test_product_list_without_token():
-    # 第一步：不携带 Token，直接请求商品列表
-    response = requests.get(
-        f"{BASE_URL}/product/list",
-        params={
-            "pageNum": 1,
-            "pageSize": 5
-        },
-        timeout=10
+    # 不携带Token，直接请求商品列表
+    response = product_api.get_product_list(
+        headers=None,
+        page_num=1,
+        page_size=5
     )
 
-    # 第二步：检查 HTTP 状态码
+    # 验证HTTP状态码
     assert response.status_code == 200
 
-    # 第三步：检查业务状态码
+    # 验证业务状态码
     result = response.json()
     assert result["code"] == 401
 
-    # 第四步：检查错误提示
+    # 验证错误提示
     assert "暂未登录" in result["message"]
-
-
 
 
 @pytest.mark.parametrize(
@@ -134,14 +108,11 @@ def test_product_list_without_token():
 def test_product_list_invalid_pagination(
     auth_headers, page_num, page_size
 ):
-    response = requests.get(
-        f"{BASE_URL}/product/list",
+    # 使用非法分页参数查询商品
+    response = product_api.get_product_list(
         headers=auth_headers,
-        params={
-            "pageNum": page_num,
-            "pageSize": page_size
-        },
-        timeout=10
+        page_num=page_num,
+        page_size=page_size
     )
 
     assert response.status_code == 200
@@ -164,16 +135,15 @@ def test_product_list_invalid_pagination(
 
 
 def test_product_update_info_success(auth_headers):
-    # 查询商品 ID 为 1 的商品编辑信息
+    # 查询商品ID为1的商品编辑信息
     product_id = 1
 
-    response = requests.get(
-        f"{BASE_URL}/product/updateInfo/{product_id}",
-        headers=auth_headers,
-        timeout=10
+    response = product_api.get_product_update_info(
+        product_id=product_id,
+        headers=auth_headers
     )
 
-    # 验证 HTTP 状态码
+    # 验证HTTP状态码
     assert response.status_code == 200
 
     # 验证业务状态码
@@ -196,7 +166,6 @@ def test_product_update_info_success(auth_headers):
     assert isinstance(data["productAttributeValueList"], list)
 
 
-
 @pytest.mark.parametrize(
     "product_id",
     [
@@ -205,15 +174,16 @@ def test_product_update_info_success(auth_headers):
         -1
     ]
 )
-def test_product_update_info_invalid_id(auth_headers, product_id):
-    # 测试不存在的商品 ID 和异常边界值
-    response = requests.get(
-        f"{BASE_URL}/product/updateInfo/{product_id}",
-        headers=auth_headers,
-        timeout=10
+def test_product_update_info_invalid_id(
+    auth_headers, product_id
+):
+    # 测试不存在的商品ID和异常边界值
+    response = product_api.get_product_update_info(
+        product_id=product_id,
+        headers=auth_headers
     )
 
-    # 验证 HTTP 状态码
+    # 验证HTTP状态码
     assert response.status_code == 200
 
     result = response.json()
@@ -225,11 +195,10 @@ def test_product_update_info_invalid_id(auth_headers, product_id):
 
 
 def test_product_update_info_invalid_type(auth_headers):
-    # 商品 ID 使用非数字字符串
-    response = requests.get(
-        f"{BASE_URL}/product/updateInfo/abc",
-        headers=auth_headers,
-        timeout=10
+    # 商品ID使用非数字字符串
+    response = product_api.get_product_update_info(
+        product_id="abc",
+        headers=auth_headers
     )
 
     # 验证当前接口的实际响应
