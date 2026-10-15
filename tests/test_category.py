@@ -122,3 +122,84 @@ def test_category_list_children_success(auth_headers):
         assert category["level"] == 1
         assert isinstance(category["name"], str)
         assert category["name"] != ""
+
+
+def test_category_list_without_token():
+    # 第一步：不携带Token查询商品分类
+    response = requests.get(
+        f"{BASE_URL}/productCategory/list/0",
+        params={
+            "pageNum": 1,
+            "pageSize": 5
+        },
+        timeout=10
+    )
+
+    # 第二步：验证接口的权限控制
+    assert response.status_code == 200
+
+    result = response.json()
+    assert result["code"] == 401
+    assert "暂未登录" in result["message"]
+
+
+def test_category_list_nonexistent_parent(auth_headers):
+    # 第一步：查询不存在的父分类
+    parent_id = 99999999
+
+    response = requests.get(
+        f"{BASE_URL}/productCategory/list/{parent_id}",
+        headers=auth_headers,
+        params={
+            "pageNum": 1,
+            "pageSize": 5
+        },
+        timeout=10
+    )
+
+    # 第二步：验证请求结果
+    assert response.status_code == 200
+
+    result = response.json()
+    assert result["code"] == 200
+    assert result["message"] == "操作成功"
+
+    # 第三步：验证返回空列表
+    data = result["data"]
+
+    assert data["pageNum"] == 1
+    assert data["pageSize"] == 5
+    assert data["total"] == 0
+    assert data["totalPage"] == 0
+    assert data["list"] == []
+
+
+def test_category_detail_success(auth_headers):
+    # 第一步：查询ID为7的商品分类详情
+    category_id = 7
+
+    response = requests.get(
+        f"{BASE_URL}/productCategory/{category_id}",
+        headers=auth_headers,
+        timeout=10
+    )
+
+    # 第二步：验证请求成功
+    assert response.status_code == 200
+
+    result = response.json()
+    assert result["code"] == 200
+    assert result["message"] == "操作成功"
+
+    # 第三步：验证分类详情
+    data = result["data"]
+
+    assert data["id"] == category_id
+    assert data["parentId"] == 1
+    assert data["name"] == "外套"
+    assert data["level"] == 1
+
+    # 第四步：验证分类信息类型
+    assert isinstance(data["productCount"], int)
+    assert isinstance(data["productUnit"], str)
+    assert isinstance(data["keywords"], str)
