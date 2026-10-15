@@ -1,11 +1,7 @@
 
-import os
 import pytest
-from dotenv import load_dotenv
 from api.login_api import LoginApi
-
-
-load_dotenv()
+from config.settings import TEST_USERNAME, TEST_PASSWORD
 
 
 @pytest.fixture(scope="module")
@@ -15,8 +11,8 @@ def auth_headers():
 
     # 登录管理员账号，获取Token
     response = login_api.login(
-        username=os.getenv("MALL_TEST_USERNAME"),
-        password=os.getenv("MALL_TEST_PASSWORD")
+        username=TEST_USERNAME,
+        password=TEST_PASSWORD
     )
 
     # 验证登录请求成功

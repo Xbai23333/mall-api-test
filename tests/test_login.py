@@ -1,14 +1,7 @@
 
-import os
 import pytest
-from dotenv import load_dotenv
 from api.login_api import LoginApi
-
-
-load_dotenv()
-
-TEST_USERNAME = os.getenv("MALL_TEST_USERNAME")
-TEST_PASSWORD = os.getenv("MALL_TEST_PASSWORD")
+from config.settings import TEST_USERNAME, TEST_PASSWORD
 
 # 创建登录接口对象
 login_api = LoginApi()
