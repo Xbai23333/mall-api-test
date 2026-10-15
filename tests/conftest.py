@@ -1,27 +1,25 @@
 
 import os
-
 import pytest
-import requests
 from dotenv import load_dotenv
+from api.login_api import LoginApi
+
 
 load_dotenv()
-
-BASE_URL = os.getenv("MALL_BASE_URL", "http://localhost:8080")
 
 
 @pytest.fixture(scope="module")
 def auth_headers():
-    # 登录管理员账号，获取 Token
-    response = requests.post(
-        f"{BASE_URL}/admin/login",
-        json={
-            "username": os.getenv("MALL_TEST_USERNAME"),
-            "password": os.getenv("MALL_TEST_PASSWORD")
-        },
-        timeout=10
+    # 创建登录接口对象
+    login_api = LoginApi()
+
+    # 登录管理员账号，获取Token
+    response = login_api.login(
+        username=os.getenv("MALL_TEST_USERNAME"),
+        password=os.getenv("MALL_TEST_PASSWORD")
     )
 
+    # 验证登录请求成功
     assert response.status_code == 200
 
     result = response.json()
@@ -30,7 +28,7 @@ def auth_headers():
     token = result["data"]["token"]
     token_head = result["data"]["tokenHead"]
 
-    # 返回带有 Token 的请求头
+    # 返回带有Token的请求头
     return {
         "Authorization": token_head + token
     }
