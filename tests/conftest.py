@@ -4,7 +4,7 @@ from api.login_api import LoginApi
 from config.settings import TEST_USERNAME, TEST_PASSWORD
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def auth_headers():
     # 创建登录接口对象
     login_api = LoginApi()
