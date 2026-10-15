@@ -1,5 +1,6 @@
 
 import os
+import pytest
 import requests
 from dotenv import load_dotenv
 
@@ -203,3 +204,51 @@ def test_category_detail_success(auth_headers):
     assert isinstance(data["productCount"], int)
     assert isinstance(data["productUnit"], str)
     assert isinstance(data["keywords"], str)
+
+
+@pytest.mark.parametrize(
+    "page_num, page_size",
+    [
+        (0, 5),
+        (1, 0)
+    ]
+)
+def test_category_list_invalid_pagination(
+    auth_headers, page_num, page_size
+):
+    # 第一步：使用非法分页参数查询商品分类
+    response = requests.get(
+        f"{BASE_URL}/productCategory/list/0",
+        headers=auth_headers,
+        params={
+            "pageNum": page_num,
+            "pageSize": page_size
+        },
+        timeout=10
+    )
+
+    # 第二步：验证HTTP状态码
+    assert response.status_code == 200
+
+    # 第三步：验证接口当前的业务响应
+    result = response.json()
+
+    assert result["code"] == 200
+    assert result["message"] == "操作成功"
+
+    # 第四步：验证分页信息
+    data = result["data"]
+
+    assert data["pageNum"] == page_num
+    assert data["pageSize"] == page_size
+    assert data["list"] == []
+
+    # 第五步：验证返回的总数和总页数
+    assert isinstance(data["total"], int)
+    assert data["total"] >= 0
+
+    if page_size == 0:
+        assert data["totalPage"] == 0
+    else:
+        assert isinstance(data["totalPage"], int)
+        assert data["totalPage"] >= 0
