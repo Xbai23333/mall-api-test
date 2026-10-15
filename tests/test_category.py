@@ -252,3 +252,68 @@ def test_category_list_invalid_pagination(
     else:
         assert isinstance(data["totalPage"], int)
         assert data["totalPage"] >= 0
+
+
+def test_category_list_negative_parent_id(auth_headers):
+    # 使用负数父分类ID查询商品分类
+    response = requests.get(
+        f"{BASE_URL}/productCategory/list/-1",
+        headers=auth_headers,
+        params={
+            "pageNum": 1,
+            "pageSize": 5
+        },
+        timeout=10
+    )
+
+    assert response.status_code == 200
+
+    result = response.json()
+    assert result["code"] == 200
+    assert result["message"] == "操作成功"
+
+    data = result["data"]
+    assert data["pageNum"] == 1
+    assert data["pageSize"] == 5
+    assert data["total"] == 0
+    assert data["totalPage"] == 0
+    assert data["list"] == []
+
+
+def test_category_detail_nonexistent_id(auth_headers):
+    # 查询不存在的商品分类详情
+    response = requests.get(
+        f"{BASE_URL}/productCategory/99999999",
+        headers=auth_headers,
+        timeout=10
+    )
+
+    assert response.status_code == 200
+
+    result = response.json()
+    assert result["code"] == 200
+    assert result["message"] == "操作成功"
+    assert result["data"] is None
+
+
+def test_category_list_invalid_parent_id_type(auth_headers):
+    # 使用非整数类型的父分类ID
+    response = requests.get(
+        f"{BASE_URL}/productCategory/list/abc",
+        headers=auth_headers,
+        params={
+            "pageNum": 1,
+            "pageSize": 5
+        },
+        timeout=10
+    )
+
+    # 验证当前接口实际返回的HTTP状态码
+    assert response.status_code == 400
+
+    result = response.json()
+
+    # 记录当前接口的异常响应行为
+    assert result["code"] == 401
+    assert result["message"] == "暂未登录或token已经过期"
+    assert "Full authentication is required" in result["data"]

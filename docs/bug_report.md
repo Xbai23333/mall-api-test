@@ -147,6 +147,35 @@ HTTP状态码：400
 
 已复现并完成初步原因定位，尚未实施正式修复。
 
+### 10. 其他接口的相似问题
+
+在商品分类列表接口中发现了相似现象。
+
+测试接口：
+
+GET /productCategory/list/abc?pageNum=1&pageSize=5
+
+测试前已通过管理员登录接口成功获取Token，并在请求头中携带有效的Authorization信息。
+
+实际返回：
+
+HTTP状态码：400
+
+```json
+{
+  "code": 401,
+  "message": "暂未登录或token已经过期",
+  "data": "Full authentication is required to access this resource"
+}
+```
+
+由于parentId参数预期为整数，而实际传入字符串abc，因此该请求属于参数类型错误。
+
+但接口返回的JSON内容却提示认证失败，与实际错误原因不符。
+
+这一现象与商品编辑信息查询接口的异常响应相似，提示两者可能受到相同的全局异常处理或Spring Security配置影响。
+
+目前尚未对商品分类接口单独进行源码定位，因此具体原因仍需进一步确认。
 
 ---
 
