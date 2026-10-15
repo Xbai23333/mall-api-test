@@ -71,9 +71,9 @@
 - 商品列表接口：8条
 - 商品编辑信息查询接口：5条
 
-最近一次完整测试结果：`19 passed in 1.03s`。
+最近一次完整测试结果：19 passed in 3.44s。
 
-**说明：** 该结果是在后端原始安全配置下取得的。后续临时修改Spring Security配置进行了缺陷定位实验，实验结束后已恢复源代码，但需要重新编译并重启后端，才能恢复原来的运行环境。
+说明： 测试在后端原始安全配置下执行。此前用于缺陷定位的临时配置已撤销，后端已重新编译并启动，19条测试用例全部通过。
 
 
 ## 四、项目目录
@@ -84,10 +84,13 @@ mall-api-test/
 │   ├── conftest.py
 │   ├── test_login.py
 │   └── test_product.py
+├── scripts/
+│   └── check_invalid_id.py
 ├── docs/
 │   └── bug_report.md
-├── reports/
-│   └── report.html
+├── reports/                 # 本地生成，不提交Git
+│   └── test_report.html
+├── .env                     # 本地配置，不提交Git
 ├── .env.example
 ├── .gitignore
 ├── requirements.txt
@@ -116,7 +119,21 @@ mall-api-test/
 
 使用 pytest-html 生成 HTML 测试报告，记录测试用例的执行结果和运行时间，方便查看和分析测试结果。
 
-目前项目共有14条自动化测试用例，最近一次执行全部通过。
+目前项目共有19条接口自动化测试用例，最近一次执行全部通过。
+
+### 5. 辅助诊断脚本
+
+项目中的 `scripts/check_invalid_id.py` 是用于分析商品ID参数类型错误的辅助诊断脚本。
+
+该脚本使用 Python Requests，先通过管理员登录接口获取有效Token，再分别请求非法商品ID、正常商品ID以及 `/error` 路径，对比不同请求的响应结果，辅助定位Spring Security异常处理问题。
+
+运行前需确保Mall后端及相关依赖服务正常启动，并已配置 `.env` 文件。
+
+运行命令：
+
+`python scripts/check_invalid_id.py`
+
+该脚本不属于正式的pytest自动化测试用例，相关问题分析见 `docs/bug_report.md`。
 
 ## 六、运行方法
 ### 环境配置
@@ -146,11 +163,11 @@ MALL_TEST_PASSWORD=your_password_here
 
 4. 生成 HTML 测试报告：
 
-   `python -m pytest tests/ -v --html=reports/report.html --self-contained-html`
+   `python -m pytest tests/ -v --html=reports/test_report.html --self-contained-html`
 
-5. 使用浏览器打开 `reports/report.html` 查看测试结果。
+5. 使用浏览器打开 `reports/test_report.html` 查看测试结果。
 
-最近一次测试于2026年10月14日执行，共运行14条自动化测试用例，全部通过，执行耗时约0.92秒，并成功生成 HTML 测试报告。
+最近一次测试于2026年10月15日执行，共运行19条自动化测试用例，全部通过，执行耗时3.44秒，并成功生成HTML测试报告。
 
 ## 七、测试发现
 
