@@ -1,10 +1,16 @@
 # Mall 商城接口自动化测试项目
 
-## 一、项目简介
+一、项目简介
 
-本项目基于 GitHub 开源商城系统 Mall，使用 Python、pytest 和 requests 对商城后台管理系统进行接口自动化测试。
+本项目基于 GitHub 开源商城系统 Mall，使用 Python、requests、pytest 对商城后台管理系统进行接口自动化测试。
 
-通过编写测试用例、执行接口请求、验证响应结果和生成 HTML 测试报告，实现对商城接口的自动化验证。
+项目采用 API 接口封装与测试用例分离的设计方式，通过 BaseApi 统一管理 HTTP 请求，通过 LoginApi、ProductApi、CategoryApi 封装业务接口，并使用 pytest 实现测试执行、参数化测试和 Token 认证管理。
+
+目前已完成管理员登录、商品管理、商品分类三个模块，共30条接口自动化测试用例，覆盖正常业务流程、未授权访问、分页查询、关键词搜索及异常参数等场景。
+
+项目支持通过 .env 配置测试环境、使用 pytest-html 生成测试报告，并通过 Git 和 GitHub 进行版本管理。
+
+测试过程中发现的异常接口行为已记录在 docs/bug_report.md 中，便于后续缺陷分析与跟踪。
 
 ## 二、技术栈
 
@@ -97,7 +103,7 @@
 - 商品编辑信息查询接口：5条
 - 商品分类接口：11条
 
-最近一次完整测试结果：30 passed in 34.43s。
+最近一次完整测试结果：30 passed in 32.49s（2026年10月，pytest fixture 优化验证）。
 
 全部测试通过，并成功生成HTML测试报告。
 
@@ -105,13 +111,23 @@
 
 ```text
 mall-api-test/
+├── api/
+│   ├── __init__.py
+│   ├── base_api.py
+│   ├── login_api.py
+│   ├── product_api.py
+│   └── category_api.py
+├── config/
+│   ├── __init__.py
+│   └── settings.py
 ├── tests/
 │   ├── conftest.py
 │   ├── test_login.py
 │   ├── test_product.py
 │   └── test_category.py
 ├── scripts/
-│   └── check_invalid_id.py
+│   ├── check_invalid_id.py
+│   └── check_invalid_category_id.py
 ├── docs/
 │   └── bug_report.md
 ├── reports/                 # 本地生成，不提交Git
@@ -127,23 +143,36 @@ mall-api-test/
 
 本项目使用 Python、Requests 和 pytest 实现接口自动化测试，并通过以下方式优化测试代码的组织和执行效率。
 
-### 1. 公共 Fixture 管理
+### 1. API 接口封装
 
-使用 `conftest.py` 统一管理管理员登录和 Token 获取功能，其他测试文件可以直接使用 `auth_headers`，避免重复编写登录代码。
+项目采用接口请求与测试断言分离的设计方式：
 
-将 `auth_headers` 的作用域设置为 `scope="module"`，使同一测试模块中的用例能够复用 Token，减少重复登录请求。
+- `BaseApi`：封装通用 GET、POST 请求，统一管理请求地址和超时时间。
+- `LoginApi`：封装管理员登录接口。
+- `ProductApi`：封装商品列表查询、商品编辑信息查询接口。
+- `CategoryApi`：封装商品分类列表及分类详情查询接口。
 
-### 2. 参数化测试
+测试文件通过调用业务 API 类发送请求，并使用 pytest 进行响应结果验证，减少重复代码，提高测试代码的可维护性。
 
-使用 `@pytest.mark.parametrize` 实现参数化测试，将多个分页边界值测试场景合并到同一个测试函数中，减少重复代码，同时保留不同测试场景的覆盖。
+### 2. 公共 Fixture 管理
 
-### 3. 测试环境配置
+使用 `tests/conftest.py` 统一管理管理员登录和 Token 获取功能。
 
-使用 `.env` 文件管理接口地址、测试账号和密码，并通过 `.gitignore` 排除敏感配置文件，避免将账号密码提交到 GitHub。
+通过 `auth_headers` fixture 获取管理员 Token，并自动生成带有 Authorization 的请求头，供商品和商品分类测试复用。
 
-### 4. 自动化测试报告
+将 fixture 作用域设置为 `scope="session"`，使同一次 pytest 测试会话中需要认证的测试共享一次 Token 获取结果，减少重复登录请求。
 
-使用 pytest-html 生成 HTML 测试报告，记录测试用例的执行结果和运行时间，方便查看和分析测试结果。
+### 3. 参数化测试
+
+使用 `@pytest.mark.parametrize` 实现参数化测试，将多个异常参数和边界值场景合并到同一个测试函数中，减少重复代码，同时保留不同测试场景的覆盖。
+
+### 4. 统一配置与测试报告
+
+通过 `.env` 文件保存测试环境地址、测试账号和密码，并使用 `config/settings.py` 集中读取环境变量。
+
+通过 `BaseApi` 统一设置 HTTP 请求超时时间，避免在不同接口中重复配置。
+
+使用 pytest-html 生成 HTML 测试报告，记录测试执行结果和运行时间，便于查看测试情况。
 
 目前项目共有30条接口自动化测试用例，最近一次完整执行全部通过。
 
@@ -193,7 +222,7 @@ MALL_TEST_PASSWORD=your_password_here
 
 5. 使用浏览器打开 `reports/test_report.html` 查看测试结果。
 
-最近一次测试于2026年10月15日执行，共运行30条自动化测试用例，全部通过，执行耗时34.43秒，并成功生成HTML测试报告。
+最近一次完整测试于2026年10月执行，共运行30条自动化测试用例，全部通过，耗时32.49秒。
 
 ## 七、测试发现
 
