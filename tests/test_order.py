@@ -1,4 +1,4 @@
-
+import pytest
 from api.order_api import OrderApi
 
 
@@ -97,3 +97,68 @@ def test_order_detail_success(auth_headers):
 
     assert isinstance(data, dict)
     assert data["id"] == order_id
+
+
+def test_order_list_filter_by_status(auth_headers):
+    # 按订单状态4筛选
+    response = order_api.get_order_list(
+        headers=auth_headers,
+        page_num=1,
+        page_size=10,
+        query_params={
+            "status": 4
+        }
+    )
+
+    # 验证HTTP和业务状态码
+    assert response.status_code == 200
+
+    result = response.json()
+    assert result["code"] == 200
+
+    data = result["data"]
+    orders = data["list"]
+
+    # 验证分页结果
+    assert data["pageNum"] == 1
+    assert data["pageSize"] == 10
+    assert isinstance(orders, list)
+    assert len(orders) <= 10
+    assert data["total"] >= len(orders)
+
+    # 验证返回的订单状态全部为4
+    for order in orders:
+        assert order["status"] == 4
+
+
+@pytest.mark.parametrize(
+    "status",
+    [0, 1, 2, 3, 4]
+)
+def test_order_list_filter_multiple_status(
+    auth_headers, status
+):
+    # 按不同订单状态查询
+    response = order_api.get_order_list(
+        headers=auth_headers,
+        page_num=1,
+        page_size=10,
+        query_params={
+            "status": status
+        }
+    )
+
+    assert response.status_code == 200
+
+    result = response.json()
+    assert result["code"] == 200
+
+    data = result["data"]
+    orders = data["list"]
+
+    assert isinstance(orders, list)
+    assert len(orders) <= 10
+
+    # 验证订单状态与查询条件一致
+    for order in orders:
+        assert order["status"] == status
