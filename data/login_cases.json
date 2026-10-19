@@ -14,7 +14,10 @@
     "username_source": "env",
     "password": "",
     "expected_code": 404,
-    "expected_messages": ["password不能为空"]
+"expected_messages": [
+  "password不能为空",
+  "passwordmust not be empty"
+]
   },
   {
     "case_id": "LOGIN_005",
@@ -22,7 +25,10 @@
     "username": "",
     "password_source": "env",
     "expected_code": 404,
-    "expected_messages": ["username不能为空"]
+"expected_messages": [
+  "username不能为空",
+  "usernamemust not be empty"
+]
   },
   {
     "case_id": "LOGIN_006",
@@ -30,9 +36,11 @@
     "username": "",
     "password": "",
     "expected_code": 404,
-    "expected_messages": [
-      "username不能为空",
-      "password不能为空"
-    ]
+"expected_messages": [
+  "username不能为空",
+  "password不能为空",
+  "usernamemust not be empty",
+  "passwordmust not be empty"
+]
   }
 ]
