@@ -237,3 +237,41 @@ def test_order_list_nonexistent_order_sn(auth_headers):
     assert isinstance(data["list"], list)
     assert data["list"] == []
     assert data["total"] == 0
+
+
+@pytest.mark.parametrize(
+    "order_id",
+    [999999999, 0, -1]
+)
+def test_order_detail_nonexistent_id(
+    auth_headers, order_id
+):
+    # 查询不存在或不合理的订单ID
+    response = order_api.get_order_detail(
+        order_id=order_id,
+        headers=auth_headers
+    )
+
+    assert response.status_code == 200
+
+    result = response.json()
+
+    # 验证当前后端的实际行为
+    assert result["code"] == 200
+    assert result["data"] is None
+
+
+def test_order_detail_invalid_id_type(auth_headers):
+    # 使用非数字订单ID
+    response = order_api.get_order_detail(
+        order_id="abc",
+        headers=auth_headers
+    )
+
+    assert response.status_code == 400
+
+    result = response.json()
+
+    # 当前后端返回401业务码，属于待修复问题
+    assert result["code"] == 401
+    assert "暂未登录" in result["message"]
