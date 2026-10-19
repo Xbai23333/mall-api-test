@@ -177,6 +177,7 @@ mall-api-test/
 │   ├── check_order_status.py
 │   ├── check_order_sn.py
 │   └── check_invalid_order_id.py
+├── run_tests.py
 ├── docs/
 │   └── bug_report.md
 ├── reports/                 # 本地生成，不提交Git
@@ -268,6 +269,7 @@ mall-api-test/
 在项目根目录下，可以使用 `python -m scripts.脚本名称` 的方式运行对应脚本。
 
 ## 六、运行方法
+
 ### 环境配置
 
 本项目使用 `.env` 文件管理接口地址和测试账号，避免将敏感信息直接写入测试代码。
@@ -300,6 +302,24 @@ MALL_TEST_PASSWORD=your_password_here
 5. 使用浏览器打开 `reports/test_report.html` 查看测试结果。
 
 最近一次完整测试于2026年10月执行，共运行46条自动化测试用例，全部通过，耗时2.13秒。
+
+### 使用测试运行脚本
+
+项目提供 `run_tests.py` 脚本，用于统一执行全部接口自动化测试，并自动生成带时间戳的HTML测试报告。
+
+运行命令：
+
+```cmd
+python run_tests.py
+```
+
+每次执行后，测试报告将自动保存到 `reports/` 目录，例如：
+
+`reports/report_20261019_143025.html`
+
+通过时间戳区分不同批次的测试报告，避免覆盖之前的测试结果。
+
+测试执行完成后，可以在浏览器中打开对应HTML文件查看结果。
 
 ## 七、测试发现
 
