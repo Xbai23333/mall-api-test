@@ -83,7 +83,7 @@ jobs:
         working-directory: mall-backend
         run: |
           mvn -B -pl mall-admin -am \
-            clean package -DskipTests
+            clean package -DskipTests -Ddocker.skip=true
 
       - name: Inspect Mall backend JAR
         run: |
