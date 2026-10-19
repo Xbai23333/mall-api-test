@@ -4,9 +4,9 @@
 
 本项目基于 GitHub 开源商城系统 Mall，使用 Python、requests、pytest 对商城后台管理系统进行接口自动化测试。
 
-项目采用 API 接口封装与测试用例分离的设计方式，通过 BaseApi 统一管理 HTTP 请求，通过 LoginApi、ProductApi、CategoryApi 封装业务接口，并使用 pytest 实现测试执行、参数化测试和 Token 认证管理。
+项目采用 API 接口封装与测试用例分离的设计方式，通过 BaseApi 统一管理 HTTP 请求，通过 LoginApi、ProductApi、CategoryApi、OrderApi 封装业务接口，并使用 pytest 实现测试执行、参数化测试和 Token 认证管理。
 
-目前已完成管理员登录、商品管理、商品分类三个模块，共30条接口自动化测试用例，覆盖正常业务流程、未授权访问、分页查询、关键词搜索及异常参数等场景。
+目前已完成管理员登录、商品管理、商品分类和订单管理四个模块，共46条接口自动化测试用例，覆盖正常业务流程、未授权访问、分页查询、关键词搜索、订单状态筛选、订单编号查询以及异常参数等场景。
 
 项目支持通过 .env 配置测试环境、使用 pytest-html 生成测试报告，并通过 Git 和 GitHub 进行版本管理。
 
@@ -94,18 +94,55 @@
 
 测试中验证了HTTP状态码、业务状态码、分页信息、分类父子关系、分类层级和部分字段的数据类型。
 
+### 订单管理接口
+
+接口地址：
+
+- `GET /order/list`
+- `GET /order/{id}`
+
+| 用例编号 | 测试场景 | 测试结果 |
+|---|---|---|
+| TC_ORDER_001 | 正常查询订单列表 | PASS |
+| TC_ORDER_002 | 查询订单列表第二页 | PASS |
+| TC_ORDER_003 | 未登录访问订单列表 | PASS |
+| TC_ORDER_004 | 根据真实订单ID查询订单详情 | PASS |
+| TC_ORDER_005 | 根据订单状态4筛选订单 | PASS |
+| TC_ORDER_006 | 根据订单状态0筛选订单 | PASS |
+| TC_ORDER_007 | 根据订单状态1筛选订单 | PASS |
+| TC_ORDER_008 | 根据订单状态2筛选订单 | PASS |
+| TC_ORDER_009 | 根据订单状态3筛选订单 | PASS |
+| TC_ORDER_010 | 根据订单状态4进行参数化筛选 | PASS |
+| TC_ORDER_011 | 根据真实订单编号查询订单 | PASS |
+| TC_ORDER_012 | 查询不存在的订单编号 | PASS |
+| TC_ORDER_013 | 查询不存在的订单ID | PASS |
+| TC_ORDER_014 | 查询订单ID为0 | PASS |
+| TC_ORDER_015 | 查询负数订单ID | PASS |
+| TC_ORDER_016 | 查询非数字订单ID | PASS |
+
+目前已完成16条订单管理接口自动化测试用例，覆盖订单列表查询、分页查询、未登录访问、订单状态筛选、订单编号查询、订单详情查询以及异常订单ID等场景。
+
+测试中使用真实订单数据动态获取订单ID和订单编号，避免在正常查询用例中直接写死测试数据。
+
+使用pytest参数化测试多个订单状态，提高测试代码的复用性。
+
+**说明：** 部分异常订单ID测试用于验证后端当前的实际响应行为，测试通过不代表该行为符合业务要求。另外，部分订单状态筛选测试可能返回空列表，仍需结合测试数据进一步验证筛选逻辑。
+
 ### 测试执行情况
 
-目前累计完成30条接口自动化测试用例，包括：
+目前累计完成46条接口自动化测试用例，包括：
 
 - 管理员登录接口：6条
 - 商品列表接口：8条
 - 商品编辑信息查询接口：5条
 - 商品分类接口：11条
+- 订单管理接口：16条
 
-最近一次完整测试结果：30 passed in 32.49s（2026年10月，pytest fixture 优化验证）。
+最近一次完整测试结果：46 passed in 2.13s（2026年10月）。
 
-全部测试通过，并成功生成HTML测试报告。
+全部46条自动化测试用例通过。
+
+项目支持使用pytest-html生成HTML测试报告，便于查看测试结果和执行时间。
 
 ## 四、项目目录
 
@@ -116,7 +153,8 @@ mall-api-test/
 │   ├── base_api.py
 │   ├── login_api.py
 │   ├── product_api.py
-│   └── category_api.py
+│   ├── category_api.py
+│   └── order_api.py
 ├── config/
 │   ├── __init__.py
 │   └── settings.py
@@ -124,10 +162,15 @@ mall-api-test/
 │   ├── conftest.py
 │   ├── test_login.py
 │   ├── test_product.py
-│   └── test_category.py
+│   ├── test_category.py
+│   └── test_order.py
 ├── scripts/
 │   ├── check_invalid_id.py
-│   └── check_invalid_category_id.py
+│   ├── check_invalid_category_id.py
+│   ├── check_order_list.py
+│   ├── check_order_status.py
+│   ├── check_order_sn.py
+│   └── check_invalid_order_id.py
 ├── docs/
 │   └── bug_report.md
 ├── reports/                 # 本地生成，不提交Git
@@ -151,6 +194,7 @@ mall-api-test/
 - `LoginApi`：封装管理员登录接口。
 - `ProductApi`：封装商品列表查询、商品编辑信息查询接口。
 - `CategoryApi`：封装商品分类列表及分类详情查询接口。
+- `OrderApi`：封装订单列表查询、订单状态和订单编号筛选以及订单详情查询接口。
 
 测试文件通过调用业务 API 类发送请求，并使用 pytest 进行响应结果验证，减少重复代码，提高测试代码的可维护性。
 
@@ -158,7 +202,7 @@ mall-api-test/
 
 使用 `tests/conftest.py` 统一管理管理员登录和 Token 获取功能。
 
-通过 `auth_headers` fixture 获取管理员 Token，并自动生成带有 Authorization 的请求头，供商品和商品分类测试复用。
+通过 `auth_headers` fixture 获取管理员 Token，并自动生成带有 Authorization 的请求头，供商品、商品分类和订单管理等需要认证的测试复用。
 
 将 fixture 作用域设置为 `scope="session"`，使同一次 pytest 测试会话中需要认证的测试共享一次 Token 获取结果，减少重复登录请求。
 
@@ -174,7 +218,7 @@ mall-api-test/
 
 使用 pytest-html 生成 HTML 测试报告，记录测试执行结果和运行时间，便于查看测试情况。
 
-目前项目共有30条接口自动化测试用例，最近一次完整执行全部通过。
+目前项目共有46条接口自动化测试用例，覆盖管理员登录、商品管理、商品分类和订单管理四个模块，最近一次完整执行全部通过。
 
 ### 5. 辅助诊断脚本
 
@@ -189,6 +233,18 @@ mall-api-test/
 `python scripts/check_invalid_id.py`
 
 该脚本不属于正式的pytest自动化测试用例，相关问题分析见 `docs/bug_report.md`。
+
+此外，项目还包含以下辅助诊断脚本：
+
+- `check_invalid_category_id.py`：分析商品分类ID类型错误的响应。
+- `check_order_list.py`：检查订单列表接口的响应结构和分页数据。
+- `check_order_status.py`：验证订单状态筛选功能。
+- `check_order_sn.py`：验证订单编号查询功能。
+- `check_invalid_order_id.py`：检查不存在、负数及非数字订单ID的响应。
+
+这些脚本主要用于接口调试、响应分析和缺陷复现，不计入正式的pytest测试用例数量。
+
+在项目根目录下，可以使用 `python -m scripts.脚本名称` 的方式运行对应脚本。
 
 ## 六、运行方法
 ### 环境配置
@@ -222,7 +278,7 @@ MALL_TEST_PASSWORD=your_password_here
 
 5. 使用浏览器打开 `reports/test_report.html` 查看测试结果。
 
-最近一次完整测试于2026年10月执行，共运行30条自动化测试用例，全部通过，耗时32.49秒。
+最近一次完整测试于2026年10月执行，共运行46条自动化测试用例，全部通过，耗时2.13秒。
 
 ## 七、测试发现
 
@@ -270,12 +326,27 @@ MALL_TEST_PASSWORD=your_password_here
 
 详细记录见docs/bug_report.md中的缺陷记录2。
 
+### 订单详情接口异常ID处理问题（待修复）
+
+在订单详情接口测试中发现，当订单ID传入非数字字符串 `abc` 时，接口返回HTTP状态码400，但JSON响应中的业务状态码为401，并提示“暂未登录或token已经过期”。
+
+测试请求已经携带有效的管理员Token，且正常订单ID能够成功查询，因此该提示与实际的参数类型错误不符。
+
+该问题与商品和商品分类接口中发现的异常ID处理问题相似，可能与后端参数类型转换异常处理或Spring Security错误请求分发有关，具体原因仍需进一步确认。
+
+另外，当订单ID为999999999、0或-1时，当前接口均返回HTTP 200、业务状态码200，且data为null。
+
+上述行为是否符合接口设计规范，仍需进一步确认。
+
+详细复现步骤和测试结果已记录在 `docs/bug_report.md` 中。
+
 ## 八、后续计划
 
-- 完善商品管理接口测试
-- 开展订单管理接口测试
-- 增加异常参数及边界值测试
+- 继续完善商品管理和订单管理接口测试
+- 增加测试数据驱动，提高测试用例复用性
+- 完善测试数据准备和清理机制
 - 增加数据库数据校验
 - 进一步优化公共请求方法和测试数据管理
-- 探索 GitHub Actions 持续集成
+- 优化HTML测试报告
+- 探索GitHub Actions持续集成
 - 开展接口性能测试
