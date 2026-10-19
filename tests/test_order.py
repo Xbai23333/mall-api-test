@@ -162,3 +162,78 @@ def test_order_list_filter_multiple_status(
     # 验证订单状态与查询条件一致
     for order in orders:
         assert order["status"] == status
+
+
+def test_order_list_filter_by_order_sn(auth_headers):
+    # 第一步：查询订单列表，获取真实订单编号
+    list_response = order_api.get_order_list(
+        headers=auth_headers,
+        page_num=1,
+        page_size=5
+    )
+
+    assert list_response.status_code == 200
+
+    list_result = list_response.json()
+    assert list_result["code"] == 200
+
+    orders = list_result["data"]["list"]
+    assert orders, "测试环境中没有可用订单"
+
+    order_sn = orders[0]["orderSn"]
+    assert order_sn, "订单编号不能为空"
+
+    # 第二步：使用真实订单编号查询
+    response = order_api.get_order_list(
+        headers=auth_headers,
+        page_num=1,
+        page_size=10,
+        query_params={
+            "orderSn": order_sn
+        }
+    )
+
+    # 第三步：验证查询结果
+    assert response.status_code == 200
+
+    result = response.json()
+    assert result["code"] == 200
+
+    filtered_orders = result["data"]["list"]
+
+    assert len(filtered_orders) > 0
+
+    # 验证目标订单存在
+    assert any(
+        order["orderSn"] == order_sn
+        for order in filtered_orders
+    )
+
+    # 验证所有返回订单编号完全匹配
+    for order in filtered_orders:
+        assert order["orderSn"] == order_sn
+
+
+def test_order_list_nonexistent_order_sn(auth_headers):
+    # 使用一个不存在的订单编号查询
+    nonexistent_order_sn = "AUTO_TEST_NOT_EXIST_999999"
+
+    response = order_api.get_order_list(
+        headers=auth_headers,
+        page_num=1,
+        page_size=5,
+        query_params={
+            "orderSn": nonexistent_order_sn
+        }
+    )
+
+    assert response.status_code == 200
+
+    result = response.json()
+    assert result["code"] == 200
+
+    data = result["data"]
+
+    assert isinstance(data["list"], list)
+    assert data["list"] == []
+    assert data["total"] == 0
