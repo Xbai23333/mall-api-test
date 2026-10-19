@@ -1,7 +1,7 @@
 import pytest
 from api.order_api import OrderApi
 from utils.data_loader import load_json_data
-
+from utils.assertions import assert_api_response
 
 order_api = OrderApi()
 
@@ -14,10 +14,7 @@ def test_order_list_success(auth_headers):
         page_size=5
     )
 
-    assert response.status_code == 200
-
-    result = response.json()
-    assert result["code"] == 200
+    result = assert_api_response(response)
 
     data = result["data"]
 
@@ -36,10 +33,7 @@ def test_order_list_page_two(auth_headers):
         page_size=3
     )
 
-    assert response.status_code == 200
-
-    result = response.json()
-    assert result["code"] == 200
+    result = assert_api_response(response)
 
     data = result["data"]
 
@@ -57,10 +51,10 @@ def test_order_list_without_token():
         page_size=5
     )
 
-    assert response.status_code == 200
-
-    result = response.json()
-    assert result["code"] == 401
+    result = assert_api_response(
+        response,
+        expected_code=401
+    )
     assert "暂未登录" in result["message"]
 
 
@@ -72,10 +66,7 @@ def test_order_detail_success(auth_headers):
         page_size=5
     )
 
-    assert list_response.status_code == 200
-
-    list_result = list_response.json()
-    assert list_result["code"] == 200
+    list_result = assert_api_response(list_response)
 
     orders = list_result["data"]["list"]
 
@@ -89,10 +80,7 @@ def test_order_detail_success(auth_headers):
         headers=auth_headers
     )
 
-    assert response.status_code == 200
-
-    result = response.json()
-    assert result["code"] == 200
+    result = assert_api_response(response)
 
     data = result["data"]
 
@@ -112,10 +100,7 @@ def test_order_list_filter_by_status(auth_headers):
     )
 
     # 验证HTTP和业务状态码
-    assert response.status_code == 200
-
-    result = response.json()
-    assert result["code"] == 200
+    result = assert_api_response(response)
 
     data = result["data"]
     orders = data["list"]
@@ -152,10 +137,7 @@ def test_order_list_filter_multiple_status(
         }
     )
 
-    assert response.status_code == 200
-
-    result = response.json()
-    assert result["code"] == 200
+    result = assert_api_response(response)
 
     data = result["data"]
     orders = data["list"]
@@ -176,10 +158,7 @@ def test_order_list_filter_by_order_sn(auth_headers):
         page_size=5
     )
 
-    assert list_response.status_code == 200
-
-    list_result = list_response.json()
-    assert list_result["code"] == 200
+    list_result = assert_api_response(list_response)
 
     orders = list_result["data"]["list"]
     assert orders, "测试环境中没有可用订单"
@@ -198,10 +177,7 @@ def test_order_list_filter_by_order_sn(auth_headers):
     )
 
     # 第三步：验证查询结果
-    assert response.status_code == 200
-
-    result = response.json()
-    assert result["code"] == 200
+    result = assert_api_response(response)
 
     filtered_orders = result["data"]["list"]
 
@@ -231,10 +207,7 @@ def test_order_list_nonexistent_order_sn(auth_headers):
         }
     )
 
-    assert response.status_code == 200
-
-    result = response.json()
-    assert result["code"] == 200
+    result = assert_api_response(response)
 
     data = result["data"]
 
@@ -256,12 +229,7 @@ def test_order_detail_nonexistent_id(
         headers=auth_headers
     )
 
-    assert response.status_code == 200
-
-    result = response.json()
-
-    # 验证当前后端的实际行为
-    assert result["code"] == 200
+    result = assert_api_response(response)
     assert result["data"] is None
 
 
@@ -272,10 +240,9 @@ def test_order_detail_invalid_id_type(auth_headers):
         headers=auth_headers
     )
 
-    assert response.status_code == 400
-
-    result = response.json()
-
-    # 当前后端返回401业务码，属于待修复问题
-    assert result["code"] == 401
+    result = assert_api_response(
+        response,
+        expected_http_status=400,
+        expected_code=401
+    )
     assert "暂未登录" in result["message"]

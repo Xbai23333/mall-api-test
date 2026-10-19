@@ -1,6 +1,7 @@
 
 import pytest
 from api.category_api import CategoryApi
+from utils.assertions import assert_api_response
 
 
 # 创建商品分类接口对象
@@ -16,12 +17,7 @@ def test_category_list_success(auth_headers):
         page_size=5
     )
 
-    # 第二步：验证 HTTP 状态码
-    assert response.status_code == 200
-
-    # 第三步：验证业务状态码
-    result = response.json()
-    assert result["code"] == 200
+    result = assert_api_response(response)
     assert result["message"] == "操作成功"
 
     # 第四步：验证分页信息
@@ -53,10 +49,7 @@ def test_category_list_page_two(auth_headers):
     )
 
     # 第二步：验证请求成功
-    assert response.status_code == 200
-
-    result = response.json()
-    assert result["code"] == 200
+    result = assert_api_response(response)
 
     # 第三步：验证分页信息
     data = result["data"]
@@ -89,10 +82,7 @@ def test_category_list_children_success(auth_headers):
     )
 
     # 第二步：验证请求成功
-    assert response.status_code == 200
-
-    result = response.json()
-    assert result["code"] == 200
+    result = assert_api_response(response)
     assert result["message"] == "操作成功"
 
     # 第三步：验证分页信息
@@ -122,10 +112,10 @@ def test_category_list_without_token():
     )
 
     # 第二步：验证接口的权限控制
-    assert response.status_code == 200
-
-    result = response.json()
-    assert result["code"] == 401
+    result = assert_api_response(
+        response,
+        expected_code=401
+    )
     assert "暂未登录" in result["message"]
 
 
@@ -141,10 +131,7 @@ def test_category_list_nonexistent_parent(auth_headers):
     )
 
     # 第二步：验证请求结果
-    assert response.status_code == 200
-
-    result = response.json()
-    assert result["code"] == 200
+    result = assert_api_response(response)
     assert result["message"] == "操作成功"
 
     # 第三步：验证返回空列表
@@ -167,10 +154,7 @@ def test_category_detail_success(auth_headers):
     )
 
     # 第二步：验证请求成功
-    assert response.status_code == 200
-
-    result = response.json()
-    assert result["code"] == 200
+    result = assert_api_response(response)
     assert result["message"] == "操作成功"
 
     # 第三步：验证分类详情
@@ -206,12 +190,7 @@ def test_category_list_invalid_pagination(
     )
 
     # 第二步：验证HTTP状态码
-    assert response.status_code == 200
-
-    # 第三步：验证接口当前的业务响应
-    result = response.json()
-
-    assert result["code"] == 200
+    result = assert_api_response(response)
     assert result["message"] == "操作成功"
 
     # 第四步：验证分页信息
@@ -241,10 +220,7 @@ def test_category_list_negative_parent_id(auth_headers):
         page_size=5
     )
 
-    assert response.status_code == 200
-
-    result = response.json()
-    assert result["code"] == 200
+    result = assert_api_response(response)
     assert result["message"] == "操作成功"
 
     data = result["data"]
@@ -262,10 +238,7 @@ def test_category_detail_nonexistent_id(auth_headers):
         headers=auth_headers
     )
 
-    assert response.status_code == 200
-
-    result = response.json()
-    assert result["code"] == 200
+    result = assert_api_response(response)
     assert result["message"] == "操作成功"
     assert result["data"] is None
 
@@ -280,11 +253,10 @@ def test_category_list_invalid_parent_id_type(auth_headers):
     )
 
     # 验证当前接口实际返回的HTTP状态码
-    assert response.status_code == 400
-
-    result = response.json()
-
-    # 记录当前接口的异常响应行为
-    assert result["code"] == 401
+    result = assert_api_response(
+        response,
+        expected_http_status=400,
+        expected_code=401
+    )
     assert result["message"] == "暂未登录或token已经过期"
     assert "Full authentication is required" in result["data"]

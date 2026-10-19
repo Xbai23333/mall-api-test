@@ -1,7 +1,7 @@
 
 import pytest
 from api.product_api import ProductApi
-
+from utils.assertions import assert_api_response
 
 # 创建商品接口对象
 product_api = ProductApi()
@@ -16,10 +16,7 @@ def test_product_list_success(auth_headers):
     )
 
     # 第二步：验证返回结果
-    assert response.status_code == 200
-
-    result = response.json()
-    assert result["code"] == 200
+    result = assert_api_response(response)
 
     data = result["data"]
 
@@ -38,10 +35,7 @@ def test_product_list_page_two(auth_headers):
         page_size=3
     )
 
-    assert response.status_code == 200
-
-    result = response.json()
-    assert result["code"] == 200
+    result = assert_api_response(response)
 
     data = result["data"]
 
@@ -63,10 +57,7 @@ def test_product_list_search_keyword(auth_headers):
         keyword="华为"
     )
 
-    assert response.status_code == 200
-
-    result = response.json()
-    assert result["code"] == 200
+    result = assert_api_response(response)
 
     products = result["data"]["list"]
 
@@ -85,14 +76,11 @@ def test_product_list_without_token():
         page_size=5
     )
 
-    # 验证HTTP状态码
-    assert response.status_code == 200
+    result = assert_api_response(
+    response,
+    expected_code=401
+)
 
-    # 验证业务状态码
-    result = response.json()
-    assert result["code"] == 401
-
-    # 验证错误提示
     assert "暂未登录" in result["message"]
 
 
@@ -115,10 +103,7 @@ def test_product_list_invalid_pagination(
         page_size=page_size
     )
 
-    assert response.status_code == 200
-
-    result = response.json()
-    assert result["code"] == 200
+    result = assert_api_response(response)
 
     data = result["data"]
 
@@ -201,10 +186,10 @@ def test_product_update_info_invalid_type(auth_headers):
         headers=auth_headers
     )
 
-    # 验证当前接口的实际响应
-    assert response.status_code == 400
+    result = assert_api_response(
+    response,
+    expected_http_status=400,
+    expected_code=401
+)
 
-    result = response.json()
-
-    assert result["code"] == 401
     assert "暂未登录" in result["message"]
