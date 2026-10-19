@@ -2,6 +2,8 @@
 name: Mall Full API Tests
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 jobs:
