@@ -1,3 +1,4 @@
+![Mall API Test CI](https://github.com/Xbai23333/mall-api-test/actions/workflows/ci.yml/badge.svg)
 # Mall 商城接口自动化测试项目
 
 一、项目简介
