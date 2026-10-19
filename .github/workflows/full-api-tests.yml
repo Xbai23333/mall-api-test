@@ -1,0 +1,225 @@
+
+name: Mall Full API Tests
+
+on:
+  workflow_dispatch:
+
+jobs:
+  full-api-tests:
+    runs-on: ubuntu-24.04
+
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_ROOT_PASSWORD: ${{ secrets.CI_MYSQL_PASSWORD }}
+          MYSQL_DATABASE: mall
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=20
+
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - name: Checkout Python test project
+        uses: actions/checkout@v4
+
+      - name: Checkout Mall backend
+        uses: actions/checkout@v4
+        with:
+          repository: macrozheng/mall
+          ref: dcaa93b3150352e5044708d7211b5bed0af4509f
+          path: mall-backend
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+          cache-dependency-path: mall-backend/pom.xml
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Install Python dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Verify environments
+        run: |
+          java -version
+          mvn -version
+          python --version
+          mysql --version
+
+      - name: Initialize Mall database
+        env:
+          MYSQL_PWD: ${{ secrets.CI_MYSQL_PASSWORD }}
+        run: |
+          mysql -h 127.0.0.1 -P 3306 -u root mall \
+            < mall-backend/document/sql/mall.sql
+
+          echo "Database import completed."
+
+          mysql -h 127.0.0.1 -P 3306 -u root mall \
+            -e "SELECT COUNT(*) AS product_count FROM pms_product;"
+
+      - name: Build Mall backend
+        working-directory: mall-backend
+        run: |
+          mvn -B -pl mall-admin -am \
+            clean package -DskipTests
+
+      - name: Inspect Mall backend JAR
+        run: |
+          echo "Generated JAR files:"
+          ls -lh mall-backend/mall-admin/target/*.jar
+
+          echo "Checking JAR manifest:"
+          unzip -p \
+            mall-backend/mall-admin/target/mall-admin-1.0-SNAPSHOT.jar \
+            META-INF/MANIFEST.MF | head -n 30
+
+      - name: Start Mall backend
+        env:
+          SPRING_DATASOURCE_URL: jdbc:mysql://127.0.0.1:3306/mall?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai
+          SPRING_DATASOURCE_USERNAME: root
+          SPRING_DATASOURCE_PASSWORD: ${{ secrets.CI_MYSQL_PASSWORD }}
+          SPRING_REDIS_HOST: 127.0.0.1
+          SPRING_REDIS_PORT: "6379"
+        run: |
+          cd mall-backend/mall-admin
+
+          nohup java -jar target/mall-admin-*.jar \
+            > "$GITHUB_WORKSPACE/mall-backend.log" 2>&1 &
+
+          echo $! > "$GITHUB_WORKSPACE/mall-backend.pid"
+          echo "Mall backend startup initiated."
+
+      - name: Wait for Mall backend
+        run: |
+          for i in $(seq 1 60); do
+            HTTP_CODE=$(curl --silent --output /dev/null \
+              --write-out "%{http_code}" \
+              --connect-timeout 2 \
+              --max-time 5 \
+              http://127.0.0.1:8080/swagger-ui/index.html || true)
+
+            if [ "$HTTP_CODE" = "200" ]; then
+              echo "Mall backend is ready."
+              exit 0
+            fi
+
+            if ! kill -0 "$(cat mall-backend.pid)" 2>/dev/null; then
+              echo "Mall backend process exited unexpectedly."
+              tail -n 100 mall-backend.log
+              exit 1
+            fi
+
+            echo "Waiting for Mall backend... ($i/60, HTTP $HTTP_CODE)"
+            sleep 5
+          done
+
+          echo "Mall backend startup timed out."
+          tail -n 100 mall-backend.log
+          exit 1
+
+      - name: Upload backend log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mall-backend-log
+          path: mall-backend.log
+          if-no-files-found: ignore
+
+      - name: Register CI admin
+        env:
+          CI_ADMIN_PASSWORD: ${{ secrets.CI_ADMIN_PASSWORD }}
+        run: |
+          python - <<'PY'
+          import os
+          import requests
+
+          password = os.environ["CI_ADMIN_PASSWORD"]
+          if not password:
+              raise RuntimeError("CI_ADMIN_PASSWORD is empty")
+
+          response = requests.post(
+              "http://127.0.0.1:8080/admin/register",
+              json={
+                  "username": "mall_ci_admin",
+                  "password": password,
+                  "nickName": "CI Test Admin"
+              },
+              timeout=15
+          )
+
+          response.raise_for_status()
+          result = response.json()
+
+          if result.get("code") != 200:
+              raise RuntimeError(
+                  f"CI admin registration failed: code={result.get('code')}"
+              )
+
+          print("CI admin registered successfully.")
+          PY
+
+      - name: Assign CI admin role
+        env:
+          MYSQL_PWD: ${{ secrets.CI_MYSQL_PASSWORD }}
+        run: |
+          mysql -h 127.0.0.1 -P 3306 -u root mall \
+            < scripts/init_ci_admin.sql
+
+          ROLE_COUNT=$(mysql -N -s \
+            -h 127.0.0.1 -P 3306 -u root mall \
+            -e "
+              SELECT COUNT(*)
+              FROM ums_admin_role_relation AS r
+              JOIN ums_admin AS a ON a.id = r.admin_id
+              WHERE a.username = 'mall_ci_admin'
+                AND r.role_id = 5;
+            ")
+
+          if [ "$ROLE_COUNT" != "1" ]; then
+            echo "CI admin role assignment failed."
+            exit 1
+          fi
+
+          echo "CI admin role assigned successfully."
+
+      - name: Run full API tests
+        env:
+          MALL_BASE_URL: http://127.0.0.1:8080
+          MALL_TEST_USERNAME: mall_ci_admin
+          MALL_TEST_PASSWORD: ${{ secrets.CI_ADMIN_PASSWORD }}
+        run: |
+          mkdir -p reports
+
+          python -m pytest tests/ -q \
+            --html=reports/full_api_test_report.html \
+            --self-contained-html
+
+      - name: Upload full API test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mall-full-api-test-report
+          path: reports/full_api_test_report.html
+          if-no-files-found: warn
