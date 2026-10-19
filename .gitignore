@@ -29,3 +29,6 @@ Thumbs.db
 
 # Generated test reports
 reports/
+
+# Test logs
+logs/
