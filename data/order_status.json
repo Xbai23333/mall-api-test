@@ -1,0 +1,28 @@
+
+[
+  {
+    "case_id": "ORDER_STATUS_001",
+    "description": "查询状态为0的订单",
+    "status": 0
+  },
+  {
+    "case_id": "ORDER_STATUS_002",
+    "description": "查询状态为1的订单",
+    "status": 1
+  },
+  {
+    "case_id": "ORDER_STATUS_003",
+    "description": "查询状态为2的订单",
+    "status": 2
+  },
+  {
+    "case_id": "ORDER_STATUS_004",
+    "description": "查询状态为3的订单",
+    "status": 3
+  },
+  {
+    "case_id": "ORDER_STATUS_005",
+    "description": "查询状态为4的订单",
+    "status": 4
+  }
+]

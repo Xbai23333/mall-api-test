@@ -1,5 +1,6 @@
 import pytest
 from api.order_api import OrderApi
+from utils.data_loader import load_json_data
 
 
 order_api = OrderApi()
@@ -131,14 +132,17 @@ def test_order_list_filter_by_status(auth_headers):
         assert order["status"] == 4
 
 
+
 @pytest.mark.parametrize(
-    "status",
-    [0, 1, 2, 3, 4]
+    "case",
+    load_json_data("data/order_status.json"),
+    ids=lambda case: case["case_id"]
 )
 def test_order_list_filter_multiple_status(
-    auth_headers, status
+    auth_headers, case
 ):
-    # 按不同订单状态查询
+    status = case["status"]
+
     response = order_api.get_order_list(
         headers=auth_headers,
         page_num=1,
@@ -159,9 +163,9 @@ def test_order_list_filter_multiple_status(
     assert isinstance(orders, list)
     assert len(orders) <= 10
 
-    # 验证订单状态与查询条件一致
     for order in orders:
         assert order["status"] == status
+
 
 
 def test_order_list_filter_by_order_sn(auth_headers):
