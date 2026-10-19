@@ -158,6 +158,12 @@ mall-api-test/
 ├── config/
 │   ├── __init__.py
 │   └── settings.py
+├── data/
+│   ├── order_status.json
+│   └── login_cases.json
+├── utils/
+│   ├── __init__.py
+│   └── data_loader.py
 ├── tests/
 │   ├── conftest.py
 │   ├── test_login.py
@@ -206,9 +212,24 @@ mall-api-test/
 
 将 fixture 作用域设置为 `scope="session"`，使同一次 pytest 测试会话中需要认证的测试共享一次 Token 获取结果，减少重复登录请求。
 
-### 3. 参数化测试
+### 3. 参数化测试与JSON数据驱动
 
-使用 `@pytest.mark.parametrize` 实现参数化测试，将多个异常参数和边界值场景合并到同一个测试函数中，减少重复代码，同时保留不同测试场景的覆盖。
+项目使用 `@pytest.mark.parametrize` 实现参数化测试，提高测试用例的复用性。
+
+在此基础上，引入JSON数据驱动，将测试数据与测试代码分离，方便后续维护和扩展。
+
+目前已实现以下数据驱动场景：
+
+- 订单状态筛选：使用 `data/order_status.json` 管理5组订单状态测试数据。
+- 登录异常场景：使用 `data/login_cases.json` 管理4组异常登录测试数据。
+
+通过 `utils/data_loader.py` 中的 `load_json_data()` 函数统一读取JSON文件。
+
+测试执行时，pytest自动读取测试数据，并根据每组数据生成独立的测试用例。
+
+其中登录测试通过 `.env` 文件读取测试账号和密码，避免将真实密码直接写入JSON文件。
+
+目前项目仍为46条自动化测试用例，数据驱动改造没有增加重复测试。
 
 ### 4. 统一配置与测试报告
 
