@@ -2,6 +2,7 @@
 import pytest
 from api.login_api import LoginApi
 from config.settings import TEST_USERNAME, TEST_PASSWORD
+from utils.data_loader import load_json_data
 
 # 创建登录接口对象
 login_api = LoginApi()
@@ -36,48 +37,27 @@ def test_login_wrong_password():
     assert result["data"] is None
 
 
+
 @pytest.mark.parametrize(
-    "username, password, expected_code, expected_message",
-    [
-        (
-            "not_exist_test_999",
-            TEST_PASSWORD,
-            404,
-            "用户名或密码错误"
-        ),
-        (
-            TEST_USERNAME,
-            "",
-            404,
-            "password不能为空"
-        ),
-        (
-            "",
-            TEST_PASSWORD,
-            404,
-            "username不能为空"
-        ),
-        (
-            "",
-            "",
-            404,
-            ("username不能为空", "password不能为空")
-        ),
-    ],
-    ids=[
-        "username_not_exist",
-        "password_empty",
-        "username_empty",
-        "both_empty",
-    ]
+    "case",
+    load_json_data("data/login_cases.json"),
+    ids=lambda case: case["case_id"]
 )
-def test_login_invalid_input(
-    username,
-    password,
-    expected_code,
-    expected_message
-):
-    # 使用异常账号或密码进行登录测试
+def test_login_invalid_input(case):
+    # 根据JSON数据准备测试账号
+    username = (
+        TEST_USERNAME
+        if case.get("username_source") == "env"
+        else case["username"]
+    )
+
+    password = (
+        TEST_PASSWORD
+        if case.get("password_source") == "env"
+        else case["password"]
+    )
+
+    # 发送登录请求
     response = login_api.login(
         username=username,
         password=password
@@ -85,12 +65,14 @@ def test_login_invalid_input(
 
     result = response.json()
 
+    # 验证HTTP状态码
     assert response.status_code == 200
-    assert result["code"] == expected_code
 
-    if isinstance(expected_message, tuple):
-        assert result["message"] in expected_message
-    else:
-        assert result["message"] == expected_message
+    # 验证业务状态码
+    assert result["code"] == case["expected_code"]
 
+    # 验证错误提示
+    assert result["message"] in case["expected_messages"]
+
+    # 验证异常登录没有返回用户数据
     assert result["data"] is None
