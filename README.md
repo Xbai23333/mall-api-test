@@ -1,24 +1,39 @@
-![Mall API Test CI](https://github.com/Xbai23333/mall-api-test/actions/workflows/ci.yml/badge.svg)
 # Mall 商城接口自动化测试项目
 
-一、项目简介
+![Unit Tests](https://github.com/Xbai23333/mall-api-test/actions/workflows/ci.yml/badge.svg)
+![Full API Tests](https://github.com/Xbai23333/mall-api-test/actions/workflows/full-api-tests.yml/badge.svg)
 
-本项目基于 GitHub 开源商城系统 Mall，使用 Python、requests、pytest 对商城后台管理系统进行接口自动化测试。
+## 一、项目简介
 
-项目采用 API 接口封装与测试用例分离的设计方式，通过 BaseApi 统一管理 HTTP 请求，通过 LoginApi、ProductApi、CategoryApi、OrderApi 封装业务接口，并使用 pytest 实现测试执行、参数化测试和 Token 认证管理。
+本项目基于 GitHub 开源商城系统 Mall，使用 Python、requests 和 pytest 搭建接口自动化测试框架，对商城后台管理系统进行自动化测试。
 
-目前已完成管理员登录、商品管理、商品分类和订单管理四个模块，共46条接口自动化测试用例，覆盖正常业务流程、未授权访问、分页查询、关键词搜索、订单状态筛选、订单编号查询以及异常参数等场景。
+项目采用分层设计，将接口请求封装、测试用例、测试数据、公共断言和环境配置进行分离，提高测试代码的复用性和可维护性。
 
-项目支持通过 .env 配置测试环境、使用 pytest-html 生成测试报告，并通过 Git 和 GitHub 进行版本管理。
+目前共完成50条自动化测试用例，其中包括46条接口测试和4条公共断言工具函数单元测试。
 
-测试过程中发现的异常接口行为已记录在 docs/bug_report.md 中，便于后续缺陷分析与跟踪。
+接口测试覆盖管理员登录、商品管理、商品分类和订单管理四个模块，包含正常业务流程、Token 认证、分页查询、关键词搜索、订单状态筛选、订单编号查询以及异常参数等场景。
+
+项目支持 JSON 数据驱动、pytest Fixture、统一日志管理、环境变量配置以及 pytest-html 测试报告。
+
+此外，项目已接入 GitHub Actions 持续集成，实现自动启动 MySQL、Redis、Mall Java 后端、初始化测试数据库及管理员账号，并执行完整自动化测试。
+
+目前完整测试工作流支持在代码推送到 main 分支后自动触发，也可以手动运行。
+
+2026年10月，GitHub Actions 云端完整测试结果为：50 passed，0 failed，测试通过率100%。
+
+测试过程中发现的潜在接口缺陷已记录在 docs/bug_report.md 中，方便后续分析与跟踪。
 
 ## 二、技术栈
 
-- 后端项目：Java、Spring Boot、MySQL、Redis
-- 接口测试：Swagger、Python、requests
-- 自动化测试框架：pytest
+- 后端系统：Java 17、Spring Boot、MySQL 5.7、Redis 7
+- 接口测试：Python 3.11、requests、Swagger
+- 测试框架：pytest
+- 数据驱动：JSON、pytest.mark.parametrize
+- 测试管理：pytest Fixture、公共断言、日志记录
 - 测试报告：pytest-html
+- 持续集成：GitHub Actions
+- 后端构建：Maven
+- CI 环境：Ubuntu 24.04、MySQL 和 Redis 服务容器
 - 版本管理：Git、GitHub
 
 ## 三、已完成的测试内容
@@ -131,62 +146,74 @@
 
 ### 测试执行情况
 
-目前累计完成46条接口自动化测试用例，包括：
+目前项目共完成50条自动化测试用例。
 
-- 管理员登录接口：6条
-- 商品列表接口：8条
-- 商品编辑信息查询接口：5条
-- 商品分类接口：11条
-- 订单管理接口：16条
+| 测试模块 | 用例数量 |
+|---|---:|
+| 管理员登录接口 | 6 |
+| 商品列表接口 | 8 |
+| 商品编辑信息查询接口 | 5 |
+| 商品分类接口 | 11 |
+| 订单管理接口 | 16 |
+| 公共断言工具函数单元测试 | 4 |
+| **合计** | **50** |
 
-最近一次完整测试结果：46 passed in 2.13s（2026年10月）。
+其中，46条为需要 Mall 后端环境的接口自动化测试，另外4条为不依赖后端服务的公共断言工具函数单元测试。
 
-全部46条自动化测试用例通过。
+2026年10月，GitHub Actions 完整测试结果：
 
-项目支持使用pytest-html生成HTML测试报告，便于查看测试结果和执行时间。
+- 测试总数：50
+- 通过数量：50
+- 失败数量：0
+- 测试通过率：100%
+- pytest 执行耗时：2.42秒
+
+项目支持通过 pytest-html 自动生成 HTML 测试报告，并在 GitHub Actions 中将报告作为 Artifact 上传，方便查看和下载。
+
+需要说明的是，测试通过代表实际响应符合当前测试用例中的预期断言，并不意味着所有接口行为都符合业务设计规范。已发现的潜在缺陷仍记录在 docs/bug_report.md 中。
 
 ## 四、项目目录
 
 ```text
 mall-api-test/
+├── .github/
+│   └── workflows/
+│       ├── ci.yml                  # 4条单元测试
+│       └── full-api-tests.yml      # 50条完整自动化测试
 ├── api/
-│   ├── __init__.py
-│   ├── base_api.py
-│   ├── login_api.py
-│   ├── product_api.py
-│   ├── category_api.py
-│   └── order_api.py
+│   ├── base_api.py                 # HTTP请求统一封装
+│   ├── login_api.py                # 登录接口
+│   ├── product_api.py              # 商品接口
+│   ├── category_api.py             # 商品分类接口
+│   └── order_api.py                # 订单接口
 ├── config/
-│   ├── __init__.py
-│   └── settings.py
+│   └── settings.py                 # 环境变量配置
 ├── data/
-│   ├── order_status.json
-│   └── login_cases.json
-├── utils/
-│   ├── __init__.py
-│   └── data_loader.py
+│   ├── login_cases.json            # 登录测试数据
+│   └── order_status.json           # 订单状态测试数据
 ├── tests/
-│   ├── conftest.py
+│   ├── conftest.py                 # pytest Fixture
+│   ├── test_assertions.py          # 4条公共断言单元测试
 │   ├── test_login.py
 │   ├── test_product.py
 │   ├── test_category.py
 │   └── test_order.py
+├── utils/
+│   ├── assertions.py               # 公共断言
+│   ├── data_loader.py              # JSON数据读取
+│   └── logger.py                   # 日志管理
 ├── scripts/
-│   ├── check_invalid_id.py
-│   ├── check_invalid_category_id.py
-│   ├── check_order_list.py
-│   ├── check_order_status.py
-│   ├── check_order_sn.py
-│   └── check_invalid_order_id.py
-├── run_tests.py
+│   ├── init_ci_admin.sql           # CI管理员角色初始化
+│   └── check_*.py                  # 接口辅助诊断脚本
 ├── docs/
-│   └── bug_report.md
-├── reports/                 # 本地生成，不提交Git
-│   └── test_report.html
-├── .env                     # 本地配置，不提交Git
-├── .env.example
+│   └── bug_report.md               # 缺陷记录
+├── reports/                         # 测试报告，不提交Git
+├── logs/                            # 运行日志，不提交Git
+├── .env                             # 本地环境配置，不提交Git
+├── .env.example                     # 环境变量示例
 ├── .gitignore
 ├── requirements.txt
+├── run_tests.py
 └── README.md
 ```
 
@@ -231,7 +258,7 @@ mall-api-test/
 
 其中登录测试通过 `.env` 文件读取测试账号和密码，避免将真实密码直接写入JSON文件。
 
-目前项目仍为46条自动化测试用例，数据驱动改造没有增加重复测试。
+数据驱动改造没有增加重复测试用例。目前项目共有46条接口自动化测试用例，另有4条公共断言工具函数单元测试，合计50条自动化测试。
 
 ### 4. 统一配置与测试报告
 
@@ -241,7 +268,7 @@ mall-api-test/
 
 使用 pytest-html 生成 HTML 测试报告，记录测试执行结果和运行时间，便于查看测试情况。
 
-目前项目共有46条接口自动化测试用例，覆盖管理员登录、商品管理、商品分类和订单管理四个模块，最近一次完整执行全部通过。
+目前项目共有46条接口自动化测试用例，覆盖管理员登录、商品管理、商品分类和订单管理四个模块。此外，还有4条公共断言工具函数单元测试。GitHub Actions 最近一次完整执行共50条测试，全部通过。
 
 ### 5. 辅助诊断脚本
 
@@ -268,6 +295,45 @@ mall-api-test/
 这些脚本主要用于接口调试、响应分析和缺陷复现，不计入正式的pytest测试用例数量。
 
 在项目根目录下，可以使用 `python -m scripts.脚本名称` 的方式运行对应脚本。
+
+### 6. GitHub Actions 持续集成
+
+项目已接入 GitHub Actions，实现自动化测试的持续集成。
+
+目前配置了两个独立的工作流：
+
+**（1）单元测试工作流：ci.yml**
+
+主要执行公共断言工具函数的4条单元测试。
+
+该工作流不依赖 Mall 后端、MySQL 或 Redis，因此运行速度较快，适合进行基础代码检查。
+
+**（2）完整接口测试工作流：full-api-tests.yml**
+
+负责搭建完整测试环境，并执行全部50条自动化测试。
+
+执行流程如下：
+
+1. 检出 Python 自动化测试项目和 Mall Java 后端源码。
+2. 配置 Java 17、Maven 和 Python 3.11 环境。
+3. 启动 MySQL 5.7、Redis 7 服务容器。
+4. 导入 Mall 数据库初始化脚本。
+5. 编译并启动 Mall Java 后端。
+6. 等待后端 HTTP 服务就绪。
+7. 注册 CI 专用管理员并分配超级管理员角色。
+8. 使用 pytest 执行全部50条自动化测试。
+9. 生成 HTML 测试报告并上传为 GitHub Actions Artifact。
+
+完整测试工作流支持两种触发方式：
+
+- 向 main 分支推送代码时自动运行。
+- 在 GitHub Actions 页面手动点击 Run workflow 运行。
+
+CI 中通过 GitHub Secrets 管理数据库密码和测试管理员密码，避免将真实凭据直接提交到代码仓库。
+
+项目使用独立的临时测试数据库，不会修改本地 MySQL 数据。
+
+2026年10月，完整接口测试工作流已成功运行，测试结果为50 passed、0 failed。
 
 ## 六、运行方法
 
@@ -302,7 +368,7 @@ MALL_TEST_PASSWORD=your_password_here
 
 5. 使用浏览器打开 `reports/test_report.html` 查看测试结果。
 
-最近一次完整测试于2026年10月执行，共运行46条自动化测试用例，全部通过，耗时2.13秒。
+最近一次 GitHub Actions 完整测试于2026年10月执行，共运行50条自动化测试用例，全部通过，pytest 执行耗时2.42秒。
 
 ### 使用测试运行脚本
 
@@ -321,6 +387,33 @@ python run_tests.py
 通过时间戳区分不同批次的测试报告，避免覆盖之前的测试结果。
 
 测试执行完成后，可以在浏览器中打开对应HTML文件查看结果。
+
+### GitHub Actions 云端运行
+
+项目已经配置 GitHub Actions，可以在云端自动搭建测试环境并执行全部自动化测试。
+
+工作流文件：
+
+- `.github/workflows/ci.yml`
+- `.github/workflows/full-api-tests.yml`
+
+手动运行步骤：
+
+1. 打开项目 GitHub 仓库。
+2. 点击 Actions。
+3. 选择 Mall Full API Tests。
+4. 点击 Run workflow，选择 main 分支。
+5. 等待工作流执行完成。
+
+完整测试工作流也会在向 main 分支推送代码后自动运行。
+
+运行完成后，可以在对应的 GitHub Actions 运行记录中查看 pytest 测试结果。
+
+如果需要查看 HTML 报告，可以在运行记录的 Artifacts 区域下载 `mall-full-api-test-report`。
+
+项目仓库地址：
+
+https://github.com/Xbai23333/mall-api-test
 
 ## 七、测试发现
 
@@ -384,11 +477,11 @@ python run_tests.py
 
 ## 八、后续计划
 
-- 继续完善商品管理和订单管理接口测试
-- 增加测试数据驱动，提高测试用例复用性
-- 完善测试数据准备和清理机制
-- 增加数据库数据校验
-- 进一步优化公共请求方法和测试数据管理
-- 优化HTML测试报告
-- 探索GitHub Actions持续集成
-- 开展接口性能测试
+- 继续增加商品管理、订单管理等接口测试场景。
+- 完善测试数据准备与清理机制，提高测试独立性。
+- 增加数据库数据校验，验证接口操作与数据库状态的一致性。
+- 优化测试用例设计，减少对固定测试数据的依赖。
+- 进一步完善异常参数和接口权限测试。
+- 优化 HTML 测试报告和失败日志分析。
+- 尝试使用 Allure 生成更丰富的自动化测试报告。
+- 学习接口性能测试，探索 JMeter 等测试工具。
