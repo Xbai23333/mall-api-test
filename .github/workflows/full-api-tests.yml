@@ -6,6 +6,11 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
   full-api-tests:
     runs-on: ubuntu-24.04
@@ -263,3 +268,24 @@ jobs:
           path: reports/allure-report/
           if-no-files-found: warn
           retention-days: 7
+
+      - name: Upload Allure report for GitHub Pages
+        if: success()
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: reports/allure-report/
+
+  deploy-pages:
+    name: Deploy Allure Report to GitHub Pages
+    needs: full-api-tests
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
