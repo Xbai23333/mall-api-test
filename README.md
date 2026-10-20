@@ -2,6 +2,11 @@
 
 ![Unit Tests](https://github.com/Xbai23333/mall-api-test/actions/workflows/ci.yml/badge.svg)
 ![Full API Tests](https://github.com/Xbai23333/mall-api-test/actions/workflows/full-api-tests.yml/badge.svg)
+[![Mall Full API Tests](https://github.com/Xbai23333/mall-api-test/actions/workflows/full-api-tests.yml/badge.svg)](https://github.com/Xbai23333/mall-api-test/actions/workflows/full-api-tests.yml)
+
+**在线测试报告：** [点击查看 Allure 可视化测试报告](https://xbai23333.github.io/mall-api-test/)
+
+项目已实现 GitHub Actions 持续集成，支持自动启动测试环境、执行50条自动化测试、生成 Allure 报告，并通过 GitHub Pages 自动发布。
 
 ## 一、项目简介
 
@@ -397,6 +402,14 @@ python run_tests.py
 ### Allure 可视化测试报告
 
 项目已集成 Allure 测试报告，用于展示自动化测试的执行结果，并通过 GitHub Actions 自动生成完整的 HTML 报告。
+
+**在线报告地址：**
+
+https://xbai23333.github.io/mall-api-test/
+
+项目已通过 GitHub Pages 实现 Allure 报告自动发布。每次向 `main` 分支推送代码后，GitHub Actions 会执行完整接口测试，并在测试和报告生成成功后自动更新在线报告。
+
+无需下载 ZIP 文件或启动本地服务器，即可通过浏览器查看测试结果。
 
 **主要功能：**
 
