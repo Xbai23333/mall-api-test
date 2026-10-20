@@ -49,6 +49,11 @@ def test_login_wrong_password():
     ids=lambda case: case["case_id"]
 )
 def test_login_invalid_input(case):
+    allure.dynamic.parameter(
+        "case",
+        case["case_id"],
+        excluded=True
+    )
     username = (
         TEST_USERNAME
         if case.get("username_source") == "env"
