@@ -1,10 +1,11 @@
 # Mall 商城接口自动化测试项目
 
 ![Unit Tests](https://github.com/Xbai23333/mall-api-test/actions/workflows/ci.yml/badge.svg)
-![Full API Tests](https://github.com/Xbai23333/mall-api-test/actions/workflows/full-api-tests.yml/badge.svg)
 [![Mall Full API Tests](https://github.com/Xbai23333/mall-api-test/actions/workflows/full-api-tests.yml/badge.svg)](https://github.com/Xbai23333/mall-api-test/actions/workflows/full-api-tests.yml)
 
 **在线测试报告：** [点击查看 Allure 可视化测试报告](https://xbai23333.github.io/mall-api-test/)
+
+**测试项目文档：** [50条自动化测试用例清单](docs/测试用例清单.md) | [接口缺陷报告](docs/bug_report.md)
 
 项目已实现 GitHub Actions 持续集成，支持自动启动测试环境、执行50条自动化测试、生成 Allure 报告，并通过 GitHub Pages 自动发布。
 
@@ -215,7 +216,8 @@ mall-api-test/
 │   ├── init_ci_admin.sql           # CI管理员角色初始化
 │   └── check_*.py                  # 接口辅助诊断脚本
 ├── docs/
-│   └── bug_report.md               # 缺陷记录
+│   ├── bug_report.md               # 缺陷记录
+│   └── 测试用例清单.md              # 50条测试用例
 ├── reports/                         # 测试报告，不提交Git
 ├── logs/                            # 运行日志，不提交Git
 ├── .env                             # 本地环境配置，不提交Git
@@ -566,5 +568,4 @@ https://github.com/Xbai23333/mall-api-test
 - 优化测试用例设计，减少对固定测试数据的依赖。
 - 进一步完善异常参数和接口权限测试。
 - 优化 HTML 测试报告和失败日志分析。
-- 尝试通过 GitHub Pages 在线展示 Allure 测试报告，方便直接访问和分享。
 - 学习接口性能测试，探索 JMeter 等测试工具。
