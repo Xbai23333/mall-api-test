@@ -1,9 +1,13 @@
 
 import pytest
+import allure
 from unittest.mock import Mock
-
 from utils.assertions import assert_api_response
 
+pytestmark = [
+    allure.epic("Mall 商城接口自动化测试"),
+    allure.feature("断言工具单元测试"),
+]
 
 def test_assert_api_response_success():
     # 模拟一个正常的接口响应

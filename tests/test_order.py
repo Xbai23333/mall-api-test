@@ -1,10 +1,14 @@
 import pytest
+import allure
 from api.order_api import OrderApi
 from utils.data_loader import load_json_data
 from utils.assertions import assert_api_response
 
 order_api = OrderApi()
-
+pytestmark = [
+    allure.epic("Mall 商城接口自动化测试"),
+    allure.feature("订单模块"),
+]
 
 def test_order_list_success(auth_headers):
     # 查询第一页订单，每页5条

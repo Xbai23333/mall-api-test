@@ -1,11 +1,15 @@
 
 import pytest
+import allure
 from api.product_api import ProductApi
 from utils.assertions import assert_api_response
 
 # 创建商品接口对象
 product_api = ProductApi()
-
+pytestmark = [
+    allure.epic("Mall 商城接口自动化测试"),
+    allure.feature("商品模块"),
+]
 
 def test_product_list_success(auth_headers):
     # 第一步：查询商品列表

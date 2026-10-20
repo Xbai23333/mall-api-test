@@ -1,12 +1,16 @@
 
 import pytest
+import allure
 from api.category_api import CategoryApi
 from utils.assertions import assert_api_response
 
 
 # 创建商品分类接口对象
 category_api = CategoryApi()
-
+pytestmark = [
+    allure.epic("Mall 商城接口自动化测试"),
+    allure.feature("商品分类模块"),
+]
 
 def test_category_list_success(auth_headers):
     # 第一步：查询一级商品分类
