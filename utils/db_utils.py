@@ -48,3 +48,24 @@ def get_product_by_id(product_id):
 
     finally:
         connection.close()
+
+def get_any_product():
+    """从数据库中查询一条商品记录"""
+
+    connection = get_db_connection()
+
+    try:
+        with connection.cursor() as cursor:
+            sql = """
+                SELECT id, name, price, stock
+                FROM pms_product
+                ORDER BY id
+                LIMIT 1
+            """
+
+            cursor.execute(sql)
+
+            return cursor.fetchone()
+
+    finally:
+        connection.close()
