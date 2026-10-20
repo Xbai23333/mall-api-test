@@ -13,7 +13,9 @@
 
 接口测试覆盖管理员登录、商品管理、商品分类和订单管理四个模块，包含正常业务流程、Token 认证、分页查询、关键词搜索、订单状态筛选、订单编号查询以及异常参数等场景。
 
-项目支持 JSON 数据驱动、pytest Fixture、统一日志管理、环境变量配置以及 pytest-html 测试报告。
+项目支持 JSON 数据驱动、pytest Fixture、统一日志管理、环境变量配置，以及 pytest-html 和 Allure 可视化测试报告。
+
+其中，Allure 报告支持中文测试标题、功能模块分类和参数化测试结果展示。项目已通过 GitHub Actions 实现自动执行测试、生成报告和上传测试结果。
 
 此外，项目已接入 GitHub Actions 持续集成，实现自动启动 MySQL、Redis、Mall Java 后端、初始化测试数据库及管理员账号，并执行完整自动化测试。
 
@@ -30,7 +32,7 @@
 - 测试框架：pytest
 - 数据驱动：JSON、pytest.mark.parametrize
 - 测试管理：pytest Fixture、公共断言、日志记录
-- 测试报告：pytest-html
+- 测试报告：pytest-html、Allure 2.46.1
 - 持续集成：GitHub Actions
 - 后端构建：Maven
 - CI 环境：Ubuntu 24.04、MySQL 和 Redis 服务容器
@@ -168,7 +170,9 @@
 - 测试通过率：100%
 - pytest 执行耗时：2.42秒
 
-项目支持通过 pytest-html 自动生成 HTML 测试报告，并在 GitHub Actions 中将报告作为 Artifact 上传，方便查看和下载。
+项目支持通过 pytest-html 和 Allure 自动生成测试报告。其中，pytest-html 用于展示测试执行结果，Allure 提供中文测试标题、模块分类、执行时间及测试详情等可视化功能。
+
+GitHub Actions 会在完整测试执行后自动生成测试报告，并上传 pytest-html 报告、Allure 原始结果和 Allure HTML 报告，方便下载和查看。
 
 需要说明的是，测试通过代表实际响应符合当前测试用例中的预期断言，并不意味着所有接口行为都符合业务设计规范。已发现的潜在缺陷仍记录在 docs/bug_report.md 中。
 
@@ -322,7 +326,9 @@ mall-api-test/
 6. 等待后端 HTTP 服务就绪。
 7. 注册 CI 专用管理员并分配超级管理员角色。
 8. 使用 pytest 执行全部50条自动化测试。
-9. 生成 HTML 测试报告并上传为 GitHub Actions Artifact。
+9. 生成 pytest-html 测试报告和 Allure 原始测试结果。
+10. 自动生成 Allure HTML 可视化报告。
+11. 将三类测试报告上传为 GitHub Actions Artifact。
 
 完整测试工作流支持两种触发方式：
 
@@ -388,6 +394,68 @@ python run_tests.py
 
 测试执行完成后，可以在浏览器中打开对应HTML文件查看结果。
 
+### Allure 可视化测试报告
+
+项目已集成 Allure 测试报告，用于展示自动化测试的执行结果，并通过 GitHub Actions 自动生成完整的 HTML 报告。
+
+**主要功能：**
+
+- 使用中文标题展示测试用例，方便阅读。
+- 通过 Epic、Feature、Story 对测试用例进行分类。
+- 展示测试通过率、执行时间及测试详情。
+- 支持参数化测试用例的独立展示。
+- GitHub Actions 自动生成并上传 Allure HTML 报告。
+
+**本地生成 Allure 报告：**
+
+首先安装 Python 依赖，并确保已经安装 Allure Commandline。
+
+执行测试并生成 Allure 原始结果：
+
+```bash
+python -m pytest tests/ -q --alluredir=reports/allure-results --clean-alluredir
+```
+
+生成 HTML 报告：
+
+```bash
+allure generate reports/allure-results -o reports/allure-report --clean
+```
+
+打开报告：
+
+```bash
+allure open reports/allure-report
+```
+
+如果 Allure Commandline 没有配置到系统 PATH，可以使用本地安装目录中的 `allure.bat` 执行上述命令。
+
+**GitHub Actions 自动生成报告：**
+
+每次向 `main` 分支推送代码后，GitHub Actions 会自动执行完整测试，并上传以下三个 Artifact：
+
+| Artifact 名称 | 说明 |
+|---|---|
+| `mall-full-api-test-report` | pytest-html 测试报告 |
+| `mall-allure-results` | Allure 原始测试结果 |
+| `mall-allure-html-report` | Allure HTML 可视化报告 |
+
+**查看云端 Allure 报告：**
+
+1. 打开 GitHub 仓库的 Actions 页面。
+2. 进入最新一次成功的 `Mall Full API Tests` 工作流。
+3. 在 Artifacts 区域下载 `mall-allure-html-report`。
+4. 解压 ZIP 文件。
+5. 在解压后的报告目录中启动本地 HTTP 服务：
+
+```bash
+python -m http.server 8765
+```
+
+6. 在浏览器中访问 `http://127.0.0.1:8765` 查看报告。
+
+目前 GitHub Actions 已成功执行全部50条自动化测试，并自动生成 Allure HTML 报告。下载后的报告已验证能够正常展示50条测试结果及中文测试标题。
+
 ### GitHub Actions 云端运行
 
 项目已经配置 GitHub Actions，可以在云端自动搭建测试环境并执行全部自动化测试。
@@ -409,7 +477,9 @@ python run_tests.py
 
 运行完成后，可以在对应的 GitHub Actions 运行记录中查看 pytest 测试结果。
 
-如果需要查看 HTML 报告，可以在运行记录的 Artifacts 区域下载 `mall-full-api-test-report`。
+工作流运行完成后，可以在 GitHub Actions 运行记录的 Artifacts 区域下载测试报告，包括 `mall-full-api-test-report`、`mall-allure-results` 和 `mall-allure-html-report`。
+
+其中，`mall-allure-html-report` 为自动生成的 Allure 可视化报告，具体查看方法见上方“Allure 可视化测试报告”小节。
 
 项目仓库地址：
 
@@ -483,5 +553,5 @@ https://github.com/Xbai23333/mall-api-test
 - 优化测试用例设计，减少对固定测试数据的依赖。
 - 进一步完善异常参数和接口权限测试。
 - 优化 HTML 测试报告和失败日志分析。
-- 尝试使用 Allure 生成更丰富的自动化测试报告。
+- 尝试通过 GitHub Pages 在线展示 Allure 测试报告，方便直接访问和分享。
 - 学习接口性能测试，探索 JMeter 等测试工具。
