@@ -216,6 +216,11 @@ jobs:
           MALL_BASE_URL: http://127.0.0.1:8080
           MALL_TEST_USERNAME: mall_ci_admin
           MALL_TEST_PASSWORD: ${{ secrets.CI_ADMIN_PASSWORD }}
+          MALL_DB_HOST: 127.0.0.1
+          MALL_DB_PORT: "3306"
+          MALL_DB_NAME: mall
+          MALL_DB_USER: root
+          MALL_DB_PASSWORD: ${{ secrets.CI_MYSQL_PASSWORD }}
         run: |
           mkdir -p reports
 

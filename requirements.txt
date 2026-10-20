@@ -3,3 +3,4 @@ requests==2.34.2
 pytest-html==4.2.0
 python-dotenv==1.2.4
 allure-pytest==2.16.2
+PyMySQL==1.2.3
