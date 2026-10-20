@@ -232,3 +232,34 @@ jobs:
           path: reports/allure-results/
           if-no-files-found: warn
           retention-days: 7
+
+      - name: Generate Allure HTML report
+        if: always()
+        run: |
+          if [ ! -d reports/allure-results ] || [ -z "$(find reports/allure-results -name '*-result.json' -print -quit)" ]; then
+            echo "No Allure test results found, skipping report generation."
+            exit 0
+          fi
+
+          ALLURE_VERSION=2.46.1
+
+          curl --fail --location --retry 3 \
+            "https://github.com/allure-framework/allure2/releases/download/${ALLURE_VERSION}/allure-${ALLURE_VERSION}.tgz" \
+            -o /tmp/allure.tgz
+
+          mkdir -p /tmp/allure-cli
+          tar -xzf /tmp/allure.tgz -C /tmp/allure-cli
+
+          /tmp/allure-cli/allure-${ALLURE_VERSION}/bin/allure \
+            generate reports/allure-results \
+            -o reports/allure-report \
+            --clean
+
+      - name: Upload Allure HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mall-allure-html-report
+          path: reports/allure-report/
+          if-no-files-found: warn
+          retention-days: 7
