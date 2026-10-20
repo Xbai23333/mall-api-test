@@ -214,9 +214,7 @@ jobs:
         run: |
           mkdir -p reports
 
-          python -m pytest tests/ -q \
-            --html=reports/full_api_test_report.html \
-            --self-contained-html
+          python -m pytest tests/ -q --html=reports/full_api_test_report.html --self-contained-html --alluredir=reports/allure-results --clean-alluredir
 
       - name: Upload full API test report
         if: always()
@@ -225,3 +223,12 @@ jobs:
           name: mall-full-api-test-report
           path: reports/full_api_test_report.html
           if-no-files-found: warn
+
+      - name: Upload Allure test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mall-allure-results
+          path: reports/allure-results/
+          if-no-files-found: warn
+          retention-days: 7
