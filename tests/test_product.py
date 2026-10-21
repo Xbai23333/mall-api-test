@@ -3,6 +3,7 @@ import pytest
 import allure
 from api.product_api import ProductApi
 from utils.assertions import assert_api_response
+from utils.data_loader import load_json_data
 
 # 创建商品接口对象
 product_api = ProductApi()
@@ -11,45 +12,43 @@ pytestmark = [
     allure.feature("商品模块"),
 ]
 
-def test_product_list_success(auth_headers):
-    # 第一步：查询商品列表
+@pytest.mark.parametrize(
+    "case",
+    load_json_data("data/product_pagination.json"),
+    ids=lambda case: case["case_id"]
+)
+def test_product_list_pagination(auth_headers, case):
+    # 1. 读取JSON测试数据
+    page_num = case["page_num"]
+    page_size = case["page_size"]
+
+    # 2. 调用商品列表接口
     response = product_api.get_product_list(
         headers=auth_headers,
-        page_num=1,
-        page_size=5
+        page_num=page_num,
+        page_size=page_size
     )
 
-    # 第二步：验证返回结果
+    # 3. 验证接口响应
     result = assert_api_response(response)
-
     data = result["data"]
 
-    assert data["pageNum"] == 1
-    assert data["pageSize"] == 5
+    # 4. 验证分页参数
+    assert data["pageNum"] == page_num
+    assert data["pageSize"] == page_size
+
+    # 5. 验证商品列表
     assert isinstance(data["list"], list)
-    assert len(data["list"]) <= 5
+    assert len(data["list"]) <= page_size
     assert data["total"] >= len(data["list"])
 
+    # 6. 验证当前页商品ID没有重复
+    product_ids = [product["id"] for product in data["list"]]
+    assert len(product_ids) == len(set(product_ids))
 
-def test_product_list_page_two(auth_headers):
-    # 查询第二页，每页3条商品
-    response = product_api.get_product_list(
-        headers=auth_headers,
-        page_num=2,
-        page_size=3
-    )
-
-    result = assert_api_response(response)
-
-    data = result["data"]
-
-    assert data["pageNum"] == 2
-    assert data["pageSize"] == 3
-    assert isinstance(data["list"], list)
-    assert len(data["list"]) <= 3
-
-    if data["total"] >= 6:
-        assert len(data["list"]) == 3
+    # 7. 商品数量足够时，验证当前页返回完整数量
+    if data["total"] >= page_num * page_size:
+        assert len(data["list"]) == page_size
 
 
 def test_product_list_search_keyword(auth_headers):
