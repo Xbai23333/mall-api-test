@@ -6,6 +6,7 @@ from utils.db_utils import get_any_product
 
 product_api = ProductApi()
 
+@allure.epic("Mall 商城接口自动化测试")
 @allure.feature("商品管理")
 @allure.story("商品接口与数据库一致性校验")
 @allure.title("商品详情接口数据与MySQL数据库一致")
