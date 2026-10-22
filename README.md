@@ -2,12 +2,13 @@
 
 ![Unit Tests](https://github.com/Xbai23333/mall-api-test/actions/workflows/ci.yml/badge.svg)
 [![Mall Full API Tests](https://github.com/Xbai23333/mall-api-test/actions/workflows/full-api-tests.yml/badge.svg)](https://github.com/Xbai23333/mall-api-test/actions/workflows/full-api-tests.yml)
+[![Mock Unit Tests](https://github.com/Xbai23333/mall-api-test/actions/workflows/mock-tests.yml/badge.svg)](https://github.com/Xbai23333/mall-api-test/actions/workflows/mock-tests.yml)
 
 **在线测试报告：** [点击查看 Allure 可视化测试报告](https://xbai23333.github.io/mall-api-test/)
 
-**测试项目文档：** [51条自动化测试用例清单](docs/测试用例清单.md) | [接口缺陷报告](docs/bug_report.md)
+**测试项目文档：** [自动化测试用例清单](docs/测试用例清单.md) | [接口缺陷报告](docs/bug_report.md)
 
-项目已实现 GitHub Actions 持续集成，支持自动启动测试环境、执行51条自动化测试、生成 Allure 报告，并通过 GitHub Pages 自动发布。
+项目已实现 GitHub Actions 持续集成，包含52条原有自动化测试和17条 Mock 单元测试，共69条测试。支持自动搭建 Mall 后端测试环境、执行接口测试、生成 Allure 可视化报告，并通过 GitHub Pages 自动发布。同时，Mock 测试可独立运行，无需启动 Mall 后端、MySQL 或 Redis。
 
 ## 一、项目简介
 
@@ -15,7 +16,7 @@
 
 项目采用分层设计，将接口请求封装、测试用例、测试数据、公共断言和环境配置进行分离，提高测试代码的复用性和可维护性。
 
-目前共完成51条自动化测试用例，其中包括46条接口测试、4条公共断言工具函数单元测试和1条商品接口与MySQL数据库一致性测试。
+目前项目共包含69条自动化测试，其中原有52条测试覆盖管理员登录、商品管理、商品分类、订单管理、公共断言以及商品接口与MySQL数据库一致性验证；另外新增17条 Mock 单元测试，主要验证模拟接口响应、网络异常、超时重试、重试次数控制和函数参数传递等功能。
 
 接口测试覆盖管理员登录、商品管理、商品分类和订单管理四个模块，包含正常业务流程、Token 认证、分页查询、关键词搜索、订单状态筛选、订单编号查询以及异常参数等场景。
 
@@ -27,7 +28,7 @@
 
 目前完整测试工作流支持在代码推送到 main 分支后自动触发，也可以手动运行。
 
-2026年10月，GitHub Actions 云端完整测试结果为：51 passed，0 failed，测试通过率100%。
+2026年10月，GitHub Actions 云端完整测试工作流已成功执行52条原有自动化测试，全部通过；新增的 Mock Unit Tests 工作流也已成功执行17条 Mock 单元测试，全部通过。
 
 测试过程中发现的潜在接口缺陷已记录在 docs/bug_report.md 中，方便后续分析与跟踪。
 
@@ -36,6 +37,7 @@
 - 后端系统：Java 17、Spring Boot、MySQL 5.7、Redis 7
 - 接口测试：Python 3.11、requests、Swagger
 - 测试框架：pytest
+- Mock 单元测试：unittest.mock、patch、Mock、side_effect
 - 数据驱动：JSON、pytest.mark.parametrize
 - 测试管理：pytest Fixture、公共断言、日志记录
 - 测试报告：pytest-html、Allure 2.46.1
@@ -154,33 +156,33 @@
 
 ### 测试执行情况
 
-目前项目共完成51条自动化测试用例。
+目前项目共包含69条自动化测试，其中52条为原有自动化测试，另外17条为新增的 Mock 单元测试。
 
 | 测试模块 | 用例数量 |
 |---|---:|
 | 管理员登录接口 | 6 |
-| 商品列表接口 | 8 |
-| 商品编辑信息查询接口 | 5 |
+| 商品管理接口 | 14 |
 | 商品分类接口 | 11 |
 | 订单管理接口 | 16 |
 | 公共断言工具函数单元测试 | 4 |
 | 商品接口与数据库一致性测试 | 1 |
-| **合计** | **51** |
+| Mock 商品接口测试 | 5 |
+| Mock 超时重试工具测试 | 12 |
+| **合计** | **69** |
 
-其中，46条为接口自动化测试，4条为公共断言工具函数单元测试，另外1条为商品接口与MySQL数据库一致性测试。
+原有52条测试包括47条接口自动化测试、4条公共断言工具函数单元测试和1条商品接口与数据库一致性测试。
 
-2026年10月，GitHub Actions 完整测试结果：
+**GitHub Actions 云端测试结果（2026年10月）：**
 
-- 测试总数：51
-- 通过数量：51
-- 失败数量：0
-- 测试通过率：100%
+- 原有自动化测试：52条，全部通过。
+- Mock Unit Tests：17条，全部通过。
+- 项目测试总数：69条。
 
-项目支持通过 pytest-html 和 Allure 自动生成测试报告。其中，pytest-html 用于展示测试执行结果，Allure 提供中文测试标题、模块分类、执行时间及测试详情等可视化功能。
+Mock 单元测试使用 `unittest.mock` 模拟接口响应、网络异常和超时重试，无需启动 Mall 后端、MySQL 或 Redis。
 
-GitHub Actions 会在完整测试执行后自动生成测试报告，并上传 pytest-html 报告、Allure 原始结果和 Allure HTML 报告，方便下载和查看。
+项目支持使用 pytest-html 和 Allure 生成测试报告。完整自动化测试工作流负责搭建测试环境并生成报告，Mock Unit Tests 工作流则独立执行17条 Mock 测试。
 
-需要说明的是，测试通过代表实际响应符合当前测试用例中的预期断言，并不意味着所有接口行为都符合业务设计规范。已发现的潜在缺陷仍记录在 docs/bug_report.md 中。
+需要说明的是，测试通过代表实际结果符合当前测试断言，并不意味着所有接口行为都符合业务设计规范。已发现的潜在缺陷仍记录在 `docs/bug_report.md` 中。
 
 ## 四、项目目录
 
@@ -188,8 +190,9 @@ GitHub Actions 会在完整测试执行后自动生成测试报告，并上传 p
 mall-api-test/
 ├── .github/
 │   └── workflows/
-│       ├── ci.yml                  # 4条单元测试
-│       └── full-api-tests.yml      # 51条完整自动化测试
+│       ├── ci.yml                  # 4条公共断言单元测试
+│       ├── full-api-tests.yml      # 完整自动化测试
+│       └── mock-tests.yml          # 17条Mock单元测试
 ├── api/
 │   ├── base_api.py                 # HTTP请求统一封装
 │   ├── login_api.py                # 登录接口
@@ -200,7 +203,8 @@ mall-api-test/
 │   └── settings.py                 # 环境变量配置
 ├── data/
 │   ├── login_cases.json            # 登录测试数据
-│   └── order_status.json           # 订单状态测试数据
+│   ├── order_status.json           # 订单状态测试数据
+│   └── product_pagination.json     # 商品分页JSON数据驱动
 ├── tests/
 │   ├── conftest.py                 # pytest Fixture
 │   ├── test_assertions.py          # 4条公共断言单元测试
@@ -208,18 +212,21 @@ mall-api-test/
 │   ├── test_product.py
 │   ├── test_category.py
 │   ├── test_order.py
-│   └── test_product_db.py           # 商品接口与数据库一致性测试
+│   ├── test_product_db.py          # 商品接口与数据库一致性测试
+│   ├── test_product_mock.py        # 5条商品接口Mock测试
+│   └── test_retry_utils.py         # 12条重试工具测试
 ├── utils/
 │   ├── assertions.py               # 公共断言
 │   ├── data_loader.py              # JSON数据读取
 │   ├── logger.py                   # 日志管理
-│   └── db_utils.py                 # MySQL数据库连接与商品查询
+│   ├── db_utils.py                 # MySQL数据库连接与商品查询
+│   └── retry_utils.py              # 通用超时重试工具
 ├── scripts/
 │   ├── init_ci_admin.sql           # CI管理员角色初始化
 │   └── check_*.py                  # 接口辅助诊断脚本
 ├── docs/
 │   ├── bug_report.md               # 缺陷记录
-│   └── 测试用例清单.md              # 51条测试用例
+│   └── 测试用例清单.md              # 自动化测试用例清单
 ├── reports/                         # 测试报告，不提交Git
 ├── logs/                            # 运行日志，不提交Git
 ├── .env                             # 本地环境配置，不提交Git
@@ -271,7 +278,7 @@ mall-api-test/
 
 其中登录测试通过 `.env` 文件读取测试账号和密码，避免将真实密码直接写入JSON文件。
 
-数据驱动改造没有增加重复测试用例。目前项目共有46条接口自动化测试用例、4条公共断言工具函数单元测试和1条数据库一致性测试，合计51条自动化测试。
+项目已通过 JSON 数据驱动实现登录异常场景、订单状态筛选和商品分页测试数据的统一管理。目前原有52条测试包括47条接口自动化测试、4条公共断言工具函数单元测试和1条数据库一致性测试。
 
 ### 4. 统一配置与测试报告
 
@@ -281,7 +288,7 @@ mall-api-test/
 
 使用 pytest-html 生成 HTML 测试报告，记录测试执行结果和运行时间，便于查看测试情况。
 
-目前项目共有46条接口自动化测试用例，覆盖管理员登录、商品管理、商品分类和订单管理四个模块。此外，还有4条公共断言工具函数单元测试和1条商品接口与MySQL数据库一致性测试。GitHub Actions 最近一次完整执行共51条测试，全部通过。
+目前项目包含47条接口自动化测试用例，覆盖管理员登录、商品管理、商品分类和订单管理四个模块。此外，还有4条公共断言工具函数单元测试、1条商品接口与MySQL数据库一致性测试，以及17条 Mock 单元测试。原有52条自动化测试和新增17条 Mock 测试已分别在 GitHub Actions 中成功运行。
 
 ### 5. 辅助诊断脚本
 
@@ -311,46 +318,77 @@ mall-api-test/
 
 ### 6. GitHub Actions 持续集成
 
-项目已接入 GitHub Actions，实现自动化测试的持续集成。
+项目已接入 GitHub Actions，实现代码推送后自动执行测试。
 
-目前配置了两个独立的工作流：
+目前配置了三个独立的工作流：
 
-**（1）单元测试工作流：ci.yml**
+**（1）公共断言单元测试：`ci.yml`**
 
-主要执行公共断言工具函数的4条单元测试。
+执行4条公共断言工具函数单元测试，不需要启动 Mall 后端、MySQL 或 Redis。
 
-该工作流不依赖 Mall 后端、MySQL 或 Redis，因此运行速度较快，适合进行基础代码检查。
+**（2）完整自动化测试：`full-api-tests.yml`**
 
-**（2）完整接口测试工作流：full-api-tests.yml**
+负责搭建完整的 Mall 测试环境，并执行项目中的自动化测试。
 
-负责搭建完整测试环境，并执行全部51条自动化测试。
-
-执行流程如下：
+主要执行流程：
 
 1. 检出 Python 自动化测试项目和 Mall Java 后端源码。
-2. 配置 Java 17、Maven 和 Python 3.11 环境。
-3. 启动 MySQL 5.7、Redis 7 服务容器。
-4. 导入 Mall 数据库初始化脚本。
+2. 配置 Java 17、Maven 和 Python 3.11。
+3. 启动 MySQL 5.7 和 Redis 7。
+4. 初始化 Mall 测试数据库。
 5. 编译并启动 Mall Java 后端。
-6. 等待后端 HTTP 服务就绪。
-7. 注册 CI 专用管理员并分配超级管理员角色。
-8. 使用 pytest 执行全部51条自动化测试。
-9. 生成 pytest-html 测试报告和 Allure 原始测试结果。
-10. 自动生成 Allure HTML 可视化报告。
-11. 将三类测试报告上传为 GitHub Actions Artifact。
+6. 初始化 CI 测试管理员账号。
+7. 使用 pytest 执行测试。
+8. 生成 pytest-html 和 Allure 测试报告。
+9. 上传测试报告，并发布 Allure 在线报告。
 
-完整测试工作流支持两种触发方式：
+原有52条自动化测试已在 GitHub Actions 中成功运行，全部通过。
 
-- 向 main 分支推送代码时自动运行。
-- 在 GitHub Actions 页面手动点击 Run workflow 运行。
+由于该工作流执行 `tests/` 目录中的测试，新增 Mock 测试后，完整测试工作流也会收集这些测试，预计共69条。
 
-CI 中通过 GitHub Secrets 管理数据库密码和测试管理员密码，避免将真实凭据直接提交到代码仓库。
+**（3）Mock 单元测试：`mock-tests.yml`**
 
-项目使用独立的临时测试数据库，不会修改本地 MySQL 数据。
+独立执行17条 Mock 单元测试，主要包括：
 
-2026年10月，完整接口测试工作流已成功运行，测试结果为51 passed、0 failed。
+- 模拟商品接口响应。
+- 验证接口请求参数。
+- 模拟 Timeout 和 ConnectionError 异常。
+- 验证超时重试成功和失败场景。
+- 验证最大重试次数和非法参数处理。
+- 验证位置参数和关键字参数的正确传递。
+
+Mock 测试使用 `unittest.mock` 模拟接口行为，不需要启动真实 Mall 后端、MySQL 或 Redis。
+
+2026年10月，Mock Unit Tests 工作流已成功运行，结果为 **17 passed**。
+
+三个工作流均支持通过 GitHub Actions 查看执行结果，其中完整自动化测试工作流还负责生成测试报告。
+
+项目通过 GitHub Secrets 管理 CI 数据库密码和测试管理员密码，避免将敏感信息提交到公开仓库。
 
 ## 六、运行方法
+
+### 独立运行 Mock 单元测试
+
+项目包含17条 Mock 单元测试，使用 Python 的 `unittest.mock` 模拟商品接口响应、网络异常和超时重试行为。
+
+Mock 测试不需要启动 Mall Java 后端、MySQL 或 Redis，安装 Python 项目依赖后即可运行。
+
+在项目根目录执行：
+
+```bash
+python -m pip install -r requirements.txt
+python -m pytest tests/test_product_mock.py tests/test_retry_utils.py -v
+```
+
+测试内容包括：
+
+- 模拟商品接口返回数据，验证响应处理逻辑。
+- 使用 `patch.object()` 替换真实接口请求，验证请求参数。
+- 使用 `side_effect` 模拟 `Timeout` 和 `ConnectionError`。
+- 验证超时重试成功、重试失败和最大重试次数。
+- 验证非法重试次数以及位置参数、关键字参数的传递。
+
+2026年10月，17条 Mock 单元测试已在 GitHub Actions 的 `Mock Unit Tests` 工作流中成功运行，结果为 **17 passed**。
 
 ### 环境配置
 
@@ -383,7 +421,7 @@ MALL_TEST_PASSWORD=your_password_here
 
 5. 使用浏览器打开 `reports/test_report.html` 查看测试结果。
 
-最近一次 GitHub Actions 完整测试于2026年10月执行，共运行51条自动化测试用例，全部通过。
+最近一次 GitHub Actions 完整测试于2026年10月执行，原有52条自动化测试已成功运行，全部通过。
 
 ### 使用测试运行脚本
 
@@ -471,7 +509,7 @@ python -m http.server 8765
 
 6. 在浏览器中访问 `http://127.0.0.1:8765` 查看报告。
 
-目前 GitHub Actions 已成功执行全部51条自动化测试，并自动生成 Allure HTML 报告。在线 Allure 报告已验证能够正常展示51条测试结果及中文测试标题。
+目前 GitHub Actions 已成功执行原有52条自动化测试，并自动生成 Allure HTML 报告。在线 Allure 报告已验证能够正常展示52条原有测试结果及中文测试标题。
 
 ### GitHub Actions 云端运行
 
@@ -481,6 +519,7 @@ python -m http.server 8765
 
 - `.github/workflows/ci.yml`
 - `.github/workflows/full-api-tests.yml`
+- `.github/workflows/mock-tests.yml`
 
 手动运行步骤：
 
