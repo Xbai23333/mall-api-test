@@ -1,10 +1,16 @@
 import pytest
+import allure
 from unittest.mock import Mock, patch
 from requests.exceptions import Timeout, ConnectionError
 
 from api.product_api import ProductApi
+pytestmark = [
+    allure.epic("Mall 商城接口自动化测试"),
+    allure.feature("商品管理"),
+    allure.story("Mock 接口测试"),
+]
 
-
+@allure.title("Mock响应对象数据验证")
 def test_mock_api_response():
     mock_response = Mock()
     mock_response.status_code = 200
@@ -25,6 +31,7 @@ def test_mock_api_response():
     assert result["data"]["name"] == "测试商品"
 
 
+@allure.title("Mock商品列表接口正常响应验证")
 def test_mock_product_list():
     product_api = ProductApi()
 
@@ -74,6 +81,7 @@ def test_mock_product_list():
         )
 
 
+@allure.title("Mock商品列表接口请求超时验证")
 def test_mock_product_list_timeout():
     product_api = ProductApi()
 
@@ -101,6 +109,8 @@ def test_mock_product_list_timeout():
     ],
     ids=["timeout", "connection_error"]
 )
+
+@allure.title("Mock商品列表接口网络异常验证：{param_id}")
 def test_mock_product_list_network_error(exception):
     product_api = ProductApi()
 

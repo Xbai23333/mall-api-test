@@ -1,10 +1,17 @@
 import pytest
+import allure
 from unittest.mock import Mock, patch, call
 from requests.exceptions import Timeout, ConnectionError
-
 from api.product_api import ProductApi
 from utils.retry_utils import retry_on_timeout
 
+pytestmark = [
+    allure.epic("Mall 商城接口自动化测试"),
+    allure.feature("公共工具"),
+    allure.story("超时重试测试"),
+]
+
+@allure.title("商品接口超时后重试成功")
 def test_mock_product_list_retry_success():
     product_api = ProductApi()
 
@@ -51,6 +58,7 @@ def test_mock_product_list_retry_success():
         # 验证底层请求一共执行了2次
         assert mock_get.call_count == 2
 
+@allure.title("商品接口连续超时后重试失败")
 def test_mock_product_list_retry_failed():
     product_api = ProductApi()
 
@@ -81,6 +89,7 @@ def test_mock_product_list_retry_failed():
     [1, 2, 3],
     ids=["retry_1", "retry_2", "retry_3"]
 )
+@allure.title("最大重试次数验证：{param_id}")
 def test_retry_max_attempts(max_attempts):
     # 创建模拟函数
     mock_func = Mock(
@@ -97,6 +106,7 @@ def test_retry_max_attempts(max_attempts):
     # 验证实际调用次数
     assert mock_func.call_count == max_attempts
 
+@allure.title("非法最大重试次数验证")
 def test_retry_invalid_max_attempts():
     mock_func = Mock()
 
@@ -118,6 +128,8 @@ def test_retry_invalid_max_attempts():
     [1, 2, 3],
     ids=["success_first", "success_second", "success_third"]
 )
+
+@allure.title("不同重试次数下成功返回验证：{param_id}")
 def test_retry_success_at_different_attempts(success_attempt):
     # 模拟成功时返回的数据
     expected_result = {"code": 200, "message": "请求成功"}
@@ -144,6 +156,7 @@ def test_retry_success_at_different_attempts(success_attempt):
     # 验证成功后立即停止，不再多次调用
     assert mock_func.call_count == success_attempt
 
+@allure.title("连接异常不触发超时重试")
 def test_retry_connection_error_no_retry():
     # 1. 创建模拟函数，调用时抛出连接失败异常
     mock_func = Mock(
@@ -163,6 +176,7 @@ def test_retry_connection_error_no_retry():
     # 3. 验证只调用了一次，没有重试
     mock_func.assert_called_once()
 
+@allure.title("重试工具位置参数与关键字参数传递验证")
 def test_retry_args_and_kwargs():
     # 1. 创建模拟函数
     mock_func = Mock(return_value="请求成功")
@@ -188,6 +202,7 @@ def test_retry_args_and_kwargs():
         page_size=5
     )
 
+@allure.title("每次重试请求参数一致性验证")
 def test_retry_each_call_has_correct_args():
     # 1. 创建模拟函数
     mock_func = Mock(
